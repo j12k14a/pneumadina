@@ -1,0 +1,9 @@
+{
+  "owner": {
+    "username": "YOUR_GITHUB_USERNAME",
+    "email": "contact@pneumadina.com"
+  },
+  "record": {
+    "CNAME": "YOUR_GITHUB_USERNAME.github.io"
+  }
+}
