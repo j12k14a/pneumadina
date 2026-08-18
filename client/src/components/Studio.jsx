@@ -1,22 +1,57 @@
-import React, { useState } from 'react';
-import { X, Send, Image, Tag, Plus, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Send, Image, Tag, Plus, Check, Layers } from 'lucide-react';
 
-export default function Studio({ onClose, categories, tags, currentUser, onPostCreated }) {
+export default function Studio({ onClose, categories, tags, currentUser, onPostCreated, onCategoryCreated }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [thumbnail, setThumbnail] = useState('');
+  const [localCategories, setLocalCategories] = useState(categories);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || 1);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [newTagName, setNewTagName] = useState('');
   const [localTags, setLocalTags] = useState(tags);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  useEffect(() => {
+    setLocalTags(tags);
+  }, [tags]);
+
   const handleTagToggle = (tagId) => {
     if (selectedTags.includes(tagId)) {
       setSelectedTags(selectedTags.filter(id => id !== tagId));
     } else {
       setSelectedTags([...selectedTags, tagId]);
+    }
+  };
+
+  const handleAddNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategoryName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const addedCat = data.data;
+        if (!localCategories.some(c => c.id === addedCat.id)) {
+          setLocalCategories([...localCategories, addedCat]);
+        }
+        setSelectedCategory(addedCat.id);
+        setNewCategoryName('');
+        if (onCategoryCreated) onCategoryCreated();
+      } else {
+        setErrorMsg(data.message || 'Gagal membuat kategori baru');
+      }
+    } catch (err) {
+      console.error('Error adding category:', err);
     }
   };
 
@@ -207,13 +242,14 @@ export default function Studio({ onClose, categories, tags, currentUser, onPostC
             )}
           </div>
 
-          {/* Category Selector */}
+          {/* Category Selector & Add Custom Category */}
           <div>
-            <label style={{ display: 'block', fontWeight: '900', fontSize: '0.8rem', marginBottom: '6px', color: '#111827' }}>
-              PILIH KATEGORI UTAMA *
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '900', fontSize: '0.8rem', marginBottom: '6px', color: '#111827' }}>
+              <Layers size={15} color="#2563EB" /> PILIH / TAMBAH KATEGORI UTAMA *
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {categories.map(cat => (
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {localCategories.map(cat => (
                 <button
                   type="button"
                   key={cat.id}
@@ -221,9 +257,35 @@ export default function Studio({ onClose, categories, tags, currentUser, onPostC
                   className={`btn ${selectedCategory === cat.id ? 'btn-yellow' : 'btn-outline'}`}
                   style={{ padding: '4px 10px', fontSize: '0.8rem' }}
                 >
-                  {cat.name}
+                  {cat.name} {selectedCategory === cat.id && '✓'}
                 </button>
               ))}
+            </div>
+
+            {/* Input to Create New Category */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <input 
+                type="text"
+                placeholder="Buat kategori baru (misal: Sastra, Opini, Riset)..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                style={{
+                  flexGrow: 1,
+                  minWidth: '180px',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #111827',
+                  fontSize: '0.8rem'
+                }}
+              />
+              <button 
+                type="button"
+                onClick={handleAddNewCategory}
+                className="btn btn-yellow"
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Plus size={15} /> Tambah Kategori
+              </button>
             </div>
           </div>
 

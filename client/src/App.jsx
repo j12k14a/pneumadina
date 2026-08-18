@@ -406,37 +406,26 @@ export default function App() {
               Semua Artikel ({posts.length})
             </button>
 
-            <button
-              onClick={() => setSelectedCategory('fiksi')}
-              className={`btn ${selectedCategory === 'fiksi' ? 'btn-yellow' : 'btn-outline'}`}
-              style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              📖 Fiksi
-            </button>
-
-            <button
-              onClick={() => setSelectedCategory('non-fiksi')}
-              className={`btn ${selectedCategory === 'non-fiksi' ? 'btn-yellow' : 'btn-outline'}`}
-              style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              ✍️ Non-Fiksi
-            </button>
-
-            <button
-              onClick={() => setSelectedCategory('desain')}
-              className={`btn ${selectedCategory === 'desain' ? 'btn-yellow' : 'btn-outline'}`}
-              style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              🎨 Desain
-            </button>
-
-            <button
-              onClick={() => setSelectedCategory('fotografi')}
-              className={`btn ${selectedCategory === 'fotografi' ? 'btn-yellow' : 'btn-outline'}`}
-              style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              📸 Fotografi
-            </button>
+            {categories.map(cat => {
+              const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name.toLowerCase();
+              const getIcon = (slug) => {
+                if (slug.includes('fiksi') && !slug.includes('non')) return '📖';
+                if (slug.includes('non-fiksi')) return '✍️';
+                if (slug.includes('desain')) return '🎨';
+                if (slug.includes('fotografi')) return '📸';
+                return '🏷️';
+              };
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.slug)}
+                  className={`btn ${isSelected ? 'btn-yellow' : 'btn-outline'}`}
+                  style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}
+                >
+                  {getIcon(cat.slug)} {cat.name}
+                </button>
+              );
+            })}
           </div>
 
           <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#6B7280' }}>
@@ -768,6 +757,7 @@ export default function App() {
           tags={tags}
           currentUser={currentUser}
           onPostCreated={() => { fetchPosts(); fetchCategories(); showToast('🎉 Artikel berhasil diterbitkan!'); }}
+          onCategoryCreated={() => { fetchCategories(); showToast('🏷️ Kategori baru berhasil ditambahkan dan disinkronkan!'); }}
         />
       )}
 

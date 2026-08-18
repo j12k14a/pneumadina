@@ -137,13 +137,20 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
     const inputClean = usernameOrEmail.toLowerCase().trim();
 
+    // Support alias emails (@pneumadina.com and @pnewmadina.com)
+    const altEmail = inputClean.includes('@pnewmadina.com')
+      ? inputClean.replace('@pnewmadina.com', '@pneumadina.com')
+      : inputClean.includes('@pneumadina.com')
+        ? inputClean.replace('@pneumadina.com', '@pnewmadina.com')
+        : inputClean;
+
     // OWASP A03: SQL Injection Prevention via Parameterized Prepared Statements
     const users = await db.query(`
       SELECT u.*, r.name as role_name, r.description as role_description
       FROM users u
       JOIN roles r ON u.role_id = r.id
-      WHERE (LOWER(u.email) = ? OR LOWER(u.username) = ?) AND u.status = 'active'
-    `, [inputClean, inputClean]);
+      WHERE (LOWER(u.email) = ? OR LOWER(u.email) = ? OR LOWER(u.username) = ?) AND u.status = 'active'
+    `, [inputClean, altEmail, inputClean]);
 
     if (!users || users.length === 0) {
       return res.status(401).json({ success: false, message: 'Email/Username atau Password salah' });
@@ -648,6 +655,46 @@ app.put('/api/submissions/:id/reject', (req, res) => {
 
   sub.status = 'rejected';
   res.json({ success: true, message: 'Submisi ditolak' });
+});
+
+// -------------------------------------------------------------
+// CATEGORY API ENDPOINTS
+// -------------------------------------------------------------
+
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await db.query('SELECT * FROM categories ORDER BY id ASC');
+    res.json({ success: true, data: categories });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengambil daftar kategori' });
+  }
+});
+
+app.post('/api/categories', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Nama kategori wajib diisi' });
+    }
+    const cleanName = name.trim();
+    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    // Check existing category
+    const existing = await db.query('SELECT * FROM categories WHERE LOWER(name) = ? OR slug = ?', [cleanName.toLowerCase(), slug]);
+    if (existing && existing.length > 0) {
+      return res.json({ success: true, message: 'Kategori sudah ada', data: existing[0] });
+    }
+
+    const desc = description || `Kategori ${cleanName}`;
+    const result = await db.execute('INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)', [cleanName, slug, desc]);
+    const newCat = { id: result.insertId, name: cleanName, slug, description: desc };
+    
+    console.log('✅ New category created:', newCat);
+    res.json({ success: true, message: 'Kategori baru berhasil ditambahkan!', data: newCat });
+  } catch (err) {
+    console.error('Create category error:', err);
+    res.status(500).json({ success: false, message: 'Gagal menambah kategori baru' });
+  }
 });
 
 app.listen(PORT, () => {
