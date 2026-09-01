@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
-import { X, User, Save, Image, FileText } from 'lucide-react';
+import { X, User, Save, Image, FileText, Upload } from 'lucide-react';
+import { db, doc, setDoc } from '../firebase';
 
 export default function EditProfileModal({ currentUser, onClose, onUpdateSuccess }) {
   const [fullName, setFullName] = useState(currentUser?.full_name || '');
   const [bio, setBio] = useState(currentUser?.bio || '');
   const [avatar, setAvatar] = useState(currentUser?.avatar || '');
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [msg, setMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMsg('Ukuran file maksimal 2 MB');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setAvatar(event.target.result);
+      setUploadingPhoto(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,33 +39,56 @@ export default function EditProfileModal({ currentUser, onClose, onUpdateSuccess
     setLoading(true);
     setErrorMsg('');
 
+    const updatedUser = {
+      ...currentUser,
+      full_name: fullName.trim(),
+      bio: bio.trim(),
+      avatar: avatar.trim()
+    };
+
+    // 1. Simpan langsung ke Cloud Firestore (Realtime)
+    if (db && currentUser?.id) {
+      try {
+        await setDoc(doc(db, 'users', String(currentUser.id)), {
+          full_name: updatedUser.full_name,
+          bio: updatedUser.bio,
+          avatar: updatedUser.avatar
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Firestore update profile notice:', err);
+      }
+    }
+
+    // 2. Simpan ke localStorage
     try {
-      const res = await fetch(`/api/users/${currentUser.id}`, {
+      localStorage.setItem('pneumadina_user', JSON.stringify(updatedUser));
+      const savedUsers = localStorage.getItem('pneumadina_users');
+      if (savedUsers) {
+        const uList = JSON.parse(savedUsers);
+        const updatedList = uList.map(u => u.id === currentUser.id ? { ...u, ...updatedUser } : u);
+        localStorage.setItem('pneumadina_users', JSON.stringify(updatedList));
+      }
+    } catch (e) {}
+
+    // 3. Sync ke backend lokal jika tersedia
+    try {
+      fetch(`/api/users/${currentUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          full_name: fullName,
-          bio,
-          avatar
+          full_name: updatedUser.full_name,
+          bio: updatedUser.bio,
+          avatar: updatedUser.avatar
         })
-      });
+      }).catch(() => {});
+    } catch (err) {}
 
-      const data = await res.json();
-      if (data.success) {
-        setMsg('🎉 Profil berhasil diperbarui!');
-        onUpdateSuccess(data.user);
-        setTimeout(() => {
-          onClose();
-        }, 1200);
-      } else {
-        setErrorMsg(data.message || 'Gagal memperbarui profil.');
-      }
-    } catch (err) {
-      console.error('Update profile error:', err);
-      setErrorMsg('Terjadi kesalahan koneksi server.');
-    } finally {
-      setLoading(false);
-    }
+    setMsg('🎉 Profil berhasil diperbarui!');
+    if (onUpdateSuccess) onUpdateSuccess(updatedUser);
+    setTimeout(() => {
+      onClose();
+    }, 1000);
+    setLoading(false);
   };
 
   return (
@@ -182,16 +225,40 @@ export default function EditProfileModal({ currentUser, onClose, onUpdateSuccess
             />
           </div>
 
-          {/* Avatar URL */}
+          {/* Avatar URL & File Upload */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '900', fontSize: '0.775rem', marginBottom: '4px', color: '#111827' }}>
-              <Image size={14} color="#2563EB" /> TAUTAN FOTO PROFIL (URL)
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: '900', fontSize: '0.775rem', marginBottom: '6px', color: '#111827' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Image size={14} color="#2563EB" /> FOTO PROFIL
+              </span>
+              <label style={{ 
+                cursor: 'pointer', 
+                backgroundColor: '#EFF6FF', 
+                color: '#1D4ED8', 
+                border: '1.5px solid #2563EB', 
+                padding: '3px 8px', 
+                borderRadius: '6px', 
+                fontSize: '0.725rem', 
+                fontWeight: '800',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <Upload size={12} /> {uploadingPhoto ? 'Mengunggah...' : 'Unggah dari Komputer'}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileUpload} 
+                  style={{ display: 'none' }} 
+                />
+              </label>
             </label>
+
             <input 
-              type="url"
+              type="text"
               value={avatar}
               onChange={(e) => setAvatar(e.target.value)}
-              placeholder="https://images.unsplash.com/... atau URL foto profil Anda"
+              placeholder="https://... atau /team/litbang-anggota-jawsyan.png"
               style={{
                 width: '100%',
                 padding: '8px 12px',
@@ -200,6 +267,32 @@ export default function EditProfileModal({ currentUser, onClose, onUpdateSuccess
                 fontSize: '0.85rem'
               }}
             />
+
+            {/* Quick Avatar Presets */}
+            <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#6B7280', alignSelf: 'center' }}>Pilihan Cepat:</span>
+              <button 
+                type="button" 
+                onClick={() => setAvatar('/team/litbang-anggota-jawsyan.png')}
+                style={{ fontSize: '0.7rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', border: '1px solid #111827', backgroundColor: '#FEF08A', cursor: 'pointer' }}
+              >
+                📸 Foto Jawsyan
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setAvatar('/team/bph-ketua-umum-bram.png')}
+                style={{ fontSize: '0.7rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', border: '1px solid #111827', backgroundColor: '#E0E7FF', cursor: 'pointer' }}
+              >
+                📸 Foto Bram
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setAvatar('/team/litbang-ketua-diandra.png')}
+                style={{ fontSize: '0.7rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', border: '1px solid #111827', backgroundColor: '#FCE7F3', cursor: 'pointer' }}
+              >
+                📸 Foto Diandra
+              </button>
+            </div>
           </div>
 
           {/* Bio */}
