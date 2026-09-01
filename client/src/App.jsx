@@ -12,6 +12,7 @@ import AuthModal from './components/AuthModal';
 import RoleDashboardModal from './components/RoleDashboardModal';
 import EditProfileModal from './components/EditProfileModal';
 import DonationModal from './components/DonationModal';
+import TeamSection from './components/TeamSection';
 import PneumadinaLogo from './components/PneumadinaLogo';
 import { Filter, Layers, Flame, ArrowUpDown, Send, CheckCircle2, Globe, Heart } from 'lucide-react';
 
@@ -530,6 +531,9 @@ export default function App() {
           </div>
         )}
 
+        {/* Struktur Divisi & Tim Pengurus Komunitas Pneumadina */}
+        <TeamSection />
+
       </main>
 
       {/* Footer */}
@@ -612,6 +616,10 @@ export default function App() {
               <h4 style={{ fontSize: '0.9rem', fontWeight: '800', color: '#FFD600', marginBottom: '0.75rem' }}>MENU UTAMA</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.825rem', color: '#D1D5DB' }}>
                 <li style={{ cursor: 'pointer' }} onClick={() => setSelectedCategory('all')}>Beranda Artikel</li>
+                <li style={{ cursor: 'pointer' }} onClick={() => {
+                  const el = document.getElementById('divisi-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}>👥 Struktur Divisi & Tim</li>
                 <li style={{ cursor: 'pointer' }} onClick={() => setShowTerimaPublikasi(true)}>Terima Publikasi Karya</li>
                 <li style={{ cursor: 'pointer' }} onClick={() => setShowBookClub(true)}>Book Club Mingguan</li>
                 <li style={{ cursor: 'pointer', color: '#FFD600', fontWeight: '800' }} onClick={() => setShowDonationModal(true)}>💛 Open Donation</li>

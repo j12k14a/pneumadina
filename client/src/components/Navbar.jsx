@@ -122,6 +122,18 @@ export default function Navbar({
           </button>
 
           <button 
+            className={`btn ${activeTab === 'divisi' ? 'btn-yellow' : 'btn-outline'}`}
+            onClick={() => {
+              setActiveTab('divisi');
+              const el = document.getElementById('divisi-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            style={{ padding: '0.45rem 1rem', fontSize: '0.825rem' }}
+          >
+            👥 Struktur Divisi
+          </button>
+
+          <button 
             className="btn btn-outline"
             onClick={onOpenDonation}
             style={{ padding: '0.45rem 0.85rem', fontSize: '0.825rem', borderColor: '#DC2626', color: '#DC2626' }}
@@ -481,6 +493,19 @@ export default function Navbar({
             style={{ width: '100%', padding: '10px', justifyContent: 'flex-start' }}
           >
             📰 Karya & Artikel
+          </button>
+
+          <button 
+            className="btn btn-outline"
+            onClick={() => {
+              setActiveTab('divisi');
+              setShowMobileMenu(false);
+              const el = document.getElementById('divisi-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            style={{ width: '100%', padding: '10px', justifyContent: 'flex-start' }}
+          >
+            👥 Struktur Divisi
           </button>
 
           {(isRoleAuthor || isRoleAdmin) && (
