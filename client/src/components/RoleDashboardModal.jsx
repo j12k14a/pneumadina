@@ -97,16 +97,22 @@ export default function RoleDashboardModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ filename: file.name, base64: event.target.result })
         });
-        const data = await res.json();
-        if (data.success) {
-          setEditingMember(prev => ({ ...prev, image: data.url }));
-          setMsg('📸 Foto berhasil diunggah!');
-          setTimeout(() => setMsg(''), 2500);
-        } else {
-          alert(data.message || 'Gagal mengunggah foto');
+        const contentType = res.headers.get('content-type');
+        if (res.ok && contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data.success) {
+            setEditingMember(prev => ({ ...prev, image: data.url }));
+            setMsg('📸 Foto berhasil diunggah!');
+            setTimeout(() => setMsg(''), 2500);
+            return;
+          }
         }
+        throw new Error('API offline');
       } catch (err) {
-        console.error(err);
+        // Fallback langsung menggunakan Data URL gambar lokal
+        setEditingMember(prev => ({ ...prev, image: event.target.result }));
+        setMsg('📸 Foto berhasil dipasang!');
+        setTimeout(() => setMsg(''), 2500);
       } finally {
         setUploadingPhoto(false);
       }
@@ -121,8 +127,8 @@ export default function RoleDashboardModal({
       return;
     }
     setLoadingAction(true);
+    const isEdit = !!editingMember.id;
     try {
-      const isEdit = !!editingMember.id;
       const url = isEdit ? `/api/team/${editingMember.id}` : '/api/team';
       const method = isEdit ? 'PUT' : 'POST';
 
@@ -131,17 +137,35 @@ export default function RoleDashboardModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingMember)
       });
-      const data = await res.json();
-      if (data.success) {
-        setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
-        setEditingMember(null);
-        fetchTeamData();
-        setTimeout(() => setMsg(''), 3000);
-      } else {
-        alert(data.message || 'Terjadi kesalahan');
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
+          setEditingMember(null);
+          fetchTeamData();
+          setTimeout(() => setMsg(''), 3000);
+          return;
+        }
       }
+      throw new Error('API offline');
     } catch (err) {
-      console.error(err);
+      // Fallback update state & localStorage
+      let updated;
+      if (isEdit) {
+        updated = localTeam.map(m => m.id === editingMember.id ? { ...m, ...editingMember } : m);
+      } else {
+        const newM = { ...editingMember, id: Date.now() };
+        updated = [...localTeam, newM];
+      }
+      setLocalTeam(updated);
+      try {
+        localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
+      } catch (e) {}
+      setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
+      setEditingMember(null);
+      if (onRefreshTeam) onRefreshTeam();
+      setTimeout(() => setMsg(''), 3000);
     } finally {
       setLoadingAction(false);
     }
@@ -151,14 +175,26 @@ export default function RoleDashboardModal({
     if (!window.confirm(`Hapus ${memberName} dari daftar pengurus Pneumadina?`)) return;
     try {
       const res = await fetch(`/api/team/${memberId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('Anggota berhasil dihapus.');
-        fetchTeamData();
-        setTimeout(() => setMsg(''), 2500);
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setMsg('Anggota berhasil dihapus.');
+          fetchTeamData();
+          setTimeout(() => setMsg(''), 2500);
+          return;
+        }
       }
+      throw new Error('API offline');
     } catch (err) {
-      console.error(err);
+      const updated = localTeam.filter(m => m.id !== memberId);
+      setLocalTeam(updated);
+      try {
+        localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
+      } catch (e) {}
+      setMsg('Anggota berhasil dihapus.');
+      if (onRefreshTeam) onRefreshTeam();
+      setTimeout(() => setMsg(''), 2500);
     }
   };
 

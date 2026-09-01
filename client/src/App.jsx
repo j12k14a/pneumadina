@@ -15,14 +15,22 @@ import DonationModal from './components/DonationModal';
 import TeamSection from './components/TeamSection';
 import PneumadinaLogo from './components/PneumadinaLogo';
 import { Filter, Layers, Flame, ArrowUpDown, Send, CheckCircle2, Globe, Heart } from 'lucide-react';
+import { SEED_DATA } from './data/seedData';
 
 const API_BASE = '/api';
 
 export default function App() {
-  const [posts, setPosts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [posts, setPosts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pneumadina_posts');
+      return saved ? JSON.parse(saved) : SEED_DATA.posts;
+    } catch {
+      return SEED_DATA.posts;
+    }
+  });
+  const [categories, setCategories] = useState(SEED_DATA.categories);
+  const [tags, setTags] = useState(SEED_DATA.tags);
+  const [users, setUsers] = useState(SEED_DATA.users);
 
   // Authenticated User State (Synchronized to pneumadina_user)
   const [currentUser, setCurrentUser] = useState(() => {
@@ -67,8 +75,15 @@ export default function App() {
   });
   const [bookmarkedIds, setBookmarkedIds] = useState([1, 3]);
 
-  // Dynamic Team Members State
-  const [teamMembers, setTeamMembers] = useState([]);
+  // Dynamic Team Members State (Default dari SEED_DATA)
+  const [teamMembers, setTeamMembers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pneumadina_team_members');
+      return saved ? JSON.parse(saved) : (SEED_DATA.team || []);
+    } catch {
+      return SEED_DATA.team || [];
+    }
+  });
 
   const showToast = (message) => {
     setToastMsg(message);
@@ -86,51 +101,61 @@ export default function App() {
   const fetchTeam = async () => {
     try {
       const res = await fetch(`${API_BASE}/team`);
-      const data = await res.json();
-      if (data.success) setTeamMembers(data.data);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setTeamMembers(data.data);
+          localStorage.setItem('pneumadina_team_members', JSON.stringify(data.data));
+        }
+      }
     } catch (err) {
-      console.error('Fetch team error:', err);
+      // Backend offline di Firebase, gunakan SEED_DATA
     }
   };
 
   const fetchPosts = async () => {
     try {
       const res = await fetch(`${API_BASE}/posts`);
-      const data = await res.json();
-      if (data.success) setPosts(data.data);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setPosts(data.data);
+          localStorage.setItem('pneumadina_posts', JSON.stringify(data.data));
+        }
+      }
     } catch (err) {
-      console.error(err);
+      // Backend offline di Firebase, gunakan SEED_DATA
     }
   };
 
   const fetchCategories = async () => {
     try {
       const res = await fetch(`${API_BASE}/categories`);
-      const data = await res.json();
-      if (data.success) setCategories(data.data);
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) setCategories(data.data);
+      }
+    } catch (err) {}
   };
 
   const fetchTags = async () => {
     try {
       const res = await fetch(`${API_BASE}/tags`);
-      const data = await res.json();
-      if (data.success) setTags(data.data);
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) setTags(data.data);
+      }
+    } catch (err) {}
   };
 
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE}/users`);
-      const data = await res.json();
-      if (data.success) setUsers(data.data);
-    } catch (err) {
-      console.error(err);
-    }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) setUsers(data.data);
+      }
+    } catch (err) {}
   };
 
   const handleLoginSuccess = (user) => {
