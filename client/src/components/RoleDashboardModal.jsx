@@ -46,8 +46,66 @@ export default function RoleDashboardModal({
   const [msg, setMsg] = useState('');
   const [loadingAction, setLoadingAction] = useState(false);
 
+  // Local Users State (Synchronized with localStorage & backend)
+  const [localUsers, setLocalUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pneumadina_users');
+      return saved ? JSON.parse(saved) : (users || []);
+    } catch {
+      return users || [];
+    }
+  });
+
+  useEffect(() => {
+    if (users && users.length > 0) {
+      setLocalUsers(users);
+    }
+  }, [users]);
+
   // Filter Authors from Users List
-  const authorsList = users.filter(u => u.role_id === 2);
+  const authorsList = localUsers.filter(u => u.role_id === 2);
+
+  // Handle Change User Role (Admin Action)
+  const handleChangeRole = async (userId, newRoleId) => {
+    const roleNames = { 1: 'Admin', 2: 'Author', 3: 'Member' };
+    const roleName = roleNames[newRoleId] || 'Member';
+
+    // 1. Optimistic UI update
+    const updatedUsers = localUsers.map(u => {
+      if (u.id === userId) {
+        return { ...u, role_id: newRoleId, role_name: roleName };
+      }
+      return u;
+    });
+    setLocalUsers(updatedUsers);
+
+    // 2. Persist in localStorage for Firebase / standalone mode
+    try {
+      localStorage.setItem('pneumadina_users', JSON.stringify(updatedUsers));
+      const savedReg = localStorage.getItem('pneumadina_registered_users');
+      if (savedReg) {
+        const regList = JSON.parse(savedReg);
+        const updatedReg = regList.map(u => u.id === userId ? { ...u, role_id: newRoleId, role_name: roleName } : u);
+        localStorage.setItem('pneumadina_registered_users', JSON.stringify(updatedReg));
+      }
+    } catch (e) {}
+
+    setMsg(`✅ Peran pengguna berhasil diubah menjadi ${roleName}!`);
+    setTimeout(() => setMsg(''), 3000);
+
+    if (onRefreshData) onRefreshData();
+
+    // 3. Notify backend API if available
+    try {
+      await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role_id: newRoleId })
+      });
+    } catch (err) {
+      console.warn('Backend API offline, perubahan peran tersimpan di browser.');
+    }
+  };
 
   // Fetch Submissions if Admin
   useEffect(() => {
@@ -247,24 +305,6 @@ export default function RoleDashboardModal({
     }
   };
 
-  // Admin Change Role Handler
-  const handleChangeRole = async (userId, newRoleId) => {
-    try {
-      const res = await fetch(`/api/users/${userId}/role`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role_id: newRoleId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('Peran pengguna berhasil diperbarui!');
-        if (onRefreshData) onRefreshData();
-        setTimeout(() => setMsg(''), 2000);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   // Admin Delete Post Handler
   const handleDeletePost = async (postId) => {
@@ -439,7 +479,7 @@ export default function RoleDashboardModal({
                   borderRadius: '6px'
                 }}
               >
-                <Users size={15} color="#2563EB" /> Kelola Pengguna ({users.length})
+                <Users size={15} color="#2563EB" /> Kelola Pengguna ({localUsers.length})
               </button>
 
               <button 
@@ -693,7 +733,7 @@ export default function RoleDashboardModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(u => (
+                    {localUsers.map(u => (
                       <tr key={u.id} style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: u.id === currentUser.id ? '#FFFDF5' : '#FFFFFF' }}>
                         <td style={{ padding: '10px', fontWeight: '800' }}>#{u.id}</td>
                         <td style={{ padding: '10px' }}>

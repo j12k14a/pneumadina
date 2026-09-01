@@ -30,7 +30,14 @@ export default function App() {
   });
   const [categories, setCategories] = useState(SEED_DATA.categories);
   const [tags, setTags] = useState(SEED_DATA.tags);
-  const [users, setUsers] = useState(SEED_DATA.users);
+  const [users, setUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pneumadina_users');
+      return saved ? JSON.parse(saved) : (SEED_DATA.users || []);
+    } catch {
+      return SEED_DATA.users || [];
+    }
+  });
 
   // Authenticated User State (Synchronized to pneumadina_user)
   const [currentUser, setCurrentUser] = useState(() => {

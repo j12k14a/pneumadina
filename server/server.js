@@ -229,21 +229,24 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   }
 });
 
-// Update Profile API Endpoint (OWASP A01: Access Control Check)
+// Update Profile / Role API Endpoint
 app.put('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, bio, avatar } = req.body;
+    const { full_name, bio, avatar, role_id } = req.body;
     
-    if (!full_name) return res.status(400).json({ success: false, message: 'Nama lengkap wajib diisi' });
-
-    if (avatar && !isValidUrl(avatar)) {
-      return res.status(400).json({ success: false, message: 'URL Foto Profil tidak valid atau berisiko' });
+    if (role_id !== undefined) {
+      await db.execute('UPDATE users SET role_id = ? WHERE id = ?', [role_id, id]);
     }
-
-    await db.execute(`
-      UPDATE users SET full_name = ?, bio = ?, avatar = ? WHERE id = ?
-    `, [full_name.trim(), bio || '', avatar || '', id]);
+    if (full_name !== undefined) {
+      await db.execute('UPDATE users SET full_name = ? WHERE id = ?', [full_name.trim(), id]);
+    }
+    if (bio !== undefined) {
+      await db.execute('UPDATE users SET bio = ? WHERE id = ?', [bio || '', id]);
+    }
+    if (avatar !== undefined && (!avatar || isValidUrl(avatar))) {
+      await db.execute('UPDATE users SET avatar = ? WHERE id = ?', [avatar || '', id]);
+    }
 
     const updatedUsers = await db.query(`
       SELECT u.id, u.role_id, u.username, u.full_name, u.email, u.bio, u.avatar, u.status, r.name as role_name
