@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, LogIn, UserPlus, Lock, Mail, User, CheckCircle } from 'lucide-react';
+import { db, doc, setDoc, getDocs, collection } from '../firebase';
 
 export default function AuthModal({ onClose, onLoginSuccess }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -25,6 +26,7 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       full_name: 'Admin Jawsyan Tampan',
       avatar: '/team/bph-ketua-umum-bram.png',
       bio: 'Administrator Utama Komunitas Pneumadina',
+      password: 'AdminPnewmadina2026!',
       passwords: ['AdminPnewmadina2026!']
     },
     {
@@ -36,6 +38,7 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       full_name: 'Diandra Paramadina',
       avatar: '/team/litbang-ketua-diandra.png',
       bio: 'Penulis & Ketua Litbang Pneumadina',
+      password: 'DiandraAuthor2026!',
       passwords: ['DiandraAuthor2026!']
     },
     {
@@ -47,6 +50,7 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       full_name: 'Tsaqilah Paramadina',
       avatar: '/team/litbang-anggota-tsaqilah.png',
       bio: 'Penulis & Anggota Litbang Pneumadina',
+      password: 'TsaqilahAuthor2026!',
       passwords: ['TsaqilahAuthor2026!']
     },
     {
@@ -58,6 +62,7 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       full_name: 'Mariam Paramadina',
       avatar: '/team/litbang-anggota-mariam.png',
       bio: 'Penulis & Anggota Litbang Pneumadina',
+      password: 'MariamAuthor2026!',
       passwords: ['MariamAuthor2026!']
     },
     {
@@ -69,11 +74,12 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       full_name: 'Contoh Member Paramadina',
       avatar: '/team/bph-anggota-sheiza.png',
       bio: 'Anggota Komunitas Pneumadina',
+      password: 'ContohMember2026!',
       passwords: ['ContohMember2026!']
     }
   ];
 
-  // Handle Login Submit (Dukungan Server Nyata + Fallback Mandiri di Firebase)
+  // Handle Login Submit (Sinkron Cloud Firestore Realtime + Fallback)
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!usernameOrEmail.trim() || !password.trim()) {
@@ -83,71 +89,77 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
 
     setLoading(true);
     setErrorMsg('');
+    const inputClean = usernameOrEmail.trim().toLowerCase();
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usernameOrEmail: usernameOrEmail.trim(),
-          password: password.trim()
-        })
-      });
-
-      const contentType = res.headers.get('content-type');
-      if (res.ok && contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success) {
-          onLoginSuccess(data.user);
-          onClose();
-          return;
-        } else {
-          setErrorMsg(data.message || 'Email atau Password salah.');
-          return;
-        }
-      }
-      throw new Error('API offline');
-    } catch (err) {
-      console.warn('Backend server offline, menggunakan autentikasi akun kredensial...', err);
-
-      let localUsers = [];
+    // 1. Cek langsung ke database Cloud Firestore
+    if (db) {
       try {
-        const savedUsers = localStorage.getItem('pneumadina_registered_users');
-        if (savedUsers) localUsers = JSON.parse(savedUsers);
-      } catch (e) {}
+        const snap = await getDocs(collection(db, 'users'));
+        const firestoreUsers = [];
+        snap.forEach(d => firestoreUsers.push(d.data()));
 
-      const allAccounts = [...KNOWN_ACCOUNTS, ...localUsers];
-      const cleanInput = usernameOrEmail.toLowerCase().trim();
+        const foundInCloud = firestoreUsers.find(u => 
+          (u.email && u.email.toLowerCase() === inputClean) || 
+          (u.username && u.username.toLowerCase() === inputClean) ||
+          (u.email && u.email.replace('@pneumadina.com', '@pnewmadina.com').toLowerCase() === inputClean) ||
+          (u.email && u.email.replace('@pnewmadina.com', '@pneumadina.com').toLowerCase() === inputClean)
+        );
 
-      const matched = allAccounts.find(acc => 
-        acc.username.toLowerCase() === cleanInput ||
-        acc.email.toLowerCase() === cleanInput ||
-        acc.email.replace('@pneumadina.com', '@pnewmadina.com').toLowerCase() === cleanInput ||
-        acc.email.replace('@pnewmadina.com', '@pneumadina.com').toLowerCase() === cleanInput
-      );
-
-      if (matched) {
-        const isPassValid = (matched.passwords && matched.passwords.includes(password.trim())) || (matched.password === password.trim());
-        if (isPassValid) {
-          const userCopy = { ...matched };
-          delete userCopy.passwords;
-          delete userCopy.password;
-          onLoginSuccess(userCopy);
-          onClose();
-          return;
-        } else {
-          setErrorMsg('Kata sandi yang Anda masukkan salah.');
-          return;
+        if (foundInCloud) {
+          const passMatches = (foundInCloud.password && foundInCloud.password === password.trim()) ||
+                              (foundInCloud.passwords && foundInCloud.passwords.includes(password.trim()));
+          if (passMatches) {
+            const userSafe = { ...foundInCloud };
+            delete userSafe.password;
+            delete userSafe.passwords;
+            onLoginSuccess(userSafe);
+            onClose();
+            setLoading(false);
+            return;
+          } else {
+            setErrorMsg('Kata sandi yang Anda masukkan salah.');
+            setLoading(false);
+            return;
+          }
         }
-      } else {
-        setErrorMsg('Email atau Username tidak terdaftar.');
+      } catch (err) {
+        console.warn('Firestore read login notice:', err);
       }
-    } finally {
-      setLoading(false);
     }
+
+    // 2. Cek ke local storage dan akun kredensial bawaan
+    let localUsers = [];
+    try {
+      const savedUsers = localStorage.getItem('pneumadina_users');
+      if (savedUsers) localUsers = JSON.parse(savedUsers);
+    } catch (e) {}
+
+    const allAccounts = [...KNOWN_ACCOUNTS, ...localUsers];
+    const matched = allAccounts.find(acc => 
+      acc.username.toLowerCase() === inputClean || 
+      acc.email.toLowerCase() === inputClean || 
+      acc.email.replace('@pneumadina.com', '@pnewmadina.com').toLowerCase() === inputClean ||
+      acc.email.replace('@pnewmadina.com', '@pneumadina.com').toLowerCase() === inputClean
+    );
+
+    if (matched) {
+      const isPassValid = (matched.passwords && matched.passwords.includes(password.trim())) || (matched.password === password.trim());
+      if (isPassValid) {
+        const userCopy = { ...matched };
+        delete userCopy.passwords;
+        delete userCopy.password;
+        onLoginSuccess(userCopy);
+        onClose();
+      } else {
+        setErrorMsg('Kata sandi yang Anda masukkan salah.');
+      }
+    } else {
+      setErrorMsg('Email atau Username tidak terdaftar.');
+    }
+    setLoading(false);
   };
 
-  // Handle Register Submit
+  // Handle Register Submit (Simpan Langsung ke Cloud Firestore)
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!regEmail.trim() || !regPassword.trim() || !regFullName.trim()) {
@@ -158,59 +170,61 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
     setLoading(true);
     setErrorMsg('');
 
+    const emailClean = regEmail.trim().toLowerCase();
+    const uname = regUsername.trim() || emailClean.split('@')[0].replace(/[^a-z0-9_]/g, '');
+
+    const newUser = {
+      id: Date.now(),
+      role_id: 3,
+      role_name: 'Member',
+      full_name: regFullName.trim(),
+      username: uname,
+      email: emailClean,
+      password: regPassword.trim(),
+      avatar: '/team/bph-anggota-sheiza.png',
+      bio: 'Anggota Komunitas Pneumadina',
+      posts_count: 0,
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Simpan ke Cloud Firestore (Realtime untuk seluruh pengguna & dashboard admin)
+    if (db) {
+      try {
+        await setDoc(doc(db, 'users', String(newUser.id)), newUser);
+      } catch (err) {
+        console.warn('Firestore register write notice:', err);
+      }
+    }
+
+    // 2. Simpan ke localStorage agar instan
     try {
-      const res = await fetch('/api/auth/register', {
+      const savedUsers = localStorage.getItem('pneumadina_users');
+      const list = savedUsers ? JSON.parse(savedUsers) : [];
+      if (!list.some(u => u.email.toLowerCase() === emailClean)) {
+        list.push(newUser);
+        localStorage.setItem('pneumadina_users', JSON.stringify(list));
+      }
+    } catch (e) {}
+
+    // 3. Simpan ke backend lokal jika tersedia
+    try {
+      fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          full_name: regFullName.trim(),
-          email: regEmail.trim(),
-          username: regUsername.trim(),
-          password: regPassword.trim()
+          full_name: newUser.full_name,
+          email: newUser.email,
+          username: newUser.username,
+          password: newUser.password
         })
-      });
+      }).catch(() => {});
+    } catch (e) {}
 
-      const contentType = res.headers.get('content-type');
-      if (res.ok && contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success) {
-          onLoginSuccess(data.user);
-          onClose();
-          return;
-        } else {
-          setErrorMsg(data.message || 'Pendaftaran akun gagal.');
-          return;
-        }
-      }
-      throw new Error('API offline');
-    } catch (err) {
-      console.warn('Backend offline, mendaftarkan akun di browser...', err);
-      const newUser = {
-        id: Date.now(),
-        role_id: 3,
-        role_name: 'Member',
-        full_name: regFullName.trim(),
-        username: regUsername.trim() || regEmail.split('@')[0],
-        email: regEmail.trim(),
-        password: regPassword.trim(),
-        avatar: '/team/bph-anggota-sheiza.png',
-        bio: 'Anggota Komunitas Pneumadina'
-      };
-
-      try {
-        const saved = localStorage.getItem('pneumadina_registered_users');
-        const list = saved ? JSON.parse(saved) : [];
-        list.push(newUser);
-        localStorage.setItem('pneumadina_registered_users', JSON.stringify(list));
-      } catch (e) {}
-
-      const userCopy = { ...newUser };
-      delete userCopy.password;
-      onLoginSuccess(userCopy);
-      onClose();
-    } finally {
-      setLoading(false);
-    }
+    const userCopy = { ...newUser };
+    delete userCopy.password;
+    onLoginSuccess(userCopy);
+    onClose();
+    setLoading(false);
   };
 
   return (

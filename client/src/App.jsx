@@ -16,7 +16,7 @@ import TeamSection from './components/TeamSection';
 import PneumadinaLogo from './components/PneumadinaLogo';
 import { Filter, Layers, Flame, ArrowUpDown, Send, CheckCircle2, Globe, Heart } from 'lucide-react';
 import { SEED_DATA } from './data/seedData';
-import { db, doc, onSnapshot, setDoc, increment } from './firebase';
+import { db, doc, onSnapshot, setDoc, increment, collection, getDoc } from './firebase';
 
 const API_BASE = '/api';
 
@@ -112,12 +112,52 @@ export default function App() {
     fetchCategories();
     fetchTags();
     fetchUsers();
-    fetchTeam();
+    // 1. Realtime Firestore Listener untuk Seluruh Pengguna (Users)
+    let unsubUsers = () => {};
+    let unsubTeam = () => {};
+    let unsubPosts = () => {};
+    let unsubLikes = () => {};
 
-    // Realtime Cloud Firestore Listener untuk Sinkronisasi Like Multi-Device
     if (db) {
       try {
-        const unsub = onSnapshot(doc(db, 'stats', 'likes_counts'), (snap) => {
+        unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
+          if (!snap.empty) {
+            const uList = [];
+            snap.forEach(d => uList.push(d.data()));
+            uList.sort((a, b) => (a.id || 0) - (b.id || 0));
+            setUsers(uList);
+            try { localStorage.setItem('pneumadina_users', JSON.stringify(uList)); } catch (e) {}
+          }
+        }, () => {});
+
+        unsubTeam = onSnapshot(collection(db, 'team_members'), (snap) => {
+          if (!snap.empty) {
+            const tList = [];
+            snap.forEach(d => tList.push(d.data()));
+            tList.sort((a, b) => (a.order_index || a.id || 0) - (b.order_index || b.id || 0));
+            setTeamMembers(tList);
+            try { localStorage.setItem('pneumadina_team_members', JSON.stringify(tList)); } catch (e) {}
+          }
+        }, () => {});
+
+        unsubPosts = onSnapshot(collection(db, 'posts'), (snap) => {
+          if (!snap.empty) {
+            const pList = [];
+            snap.forEach(d => pList.push(d.data()));
+            pList.sort((a, b) => (b.id || 0) - (a.id || 0));
+            const dynamicLikes = JSON.parse(localStorage.getItem('pneumadina_dynamic_likes') || '{}');
+            const updatedP = pList.map(p => {
+              if (dynamicLikes[p.id] !== undefined) {
+                return { ...p, likes_count: dynamicLikes[p.id] };
+              }
+              return p;
+            });
+            setPosts(updatedP);
+            try { localStorage.setItem('pneumadina_posts', JSON.stringify(updatedP)); } catch (e) {}
+          }
+        }, () => {});
+
+        unsubLikes = onSnapshot(doc(db, 'stats', 'likes_counts'), (snap) => {
           if (snap.exists()) {
             const remoteCounts = snap.data() || {};
             setPosts(prevPosts => {
@@ -136,12 +176,18 @@ export default function App() {
               return updated;
             });
           }
-        }, () => {
-          // Abaikan jika database belum diaktifkan di console
-        });
-        return () => unsub();
-      } catch (e) {}
+        }, () => {});
+      } catch (e) {
+        console.warn('Firestore realtime listeners notice:', e);
+      }
     }
+
+    return () => {
+      unsubUsers();
+      unsubTeam();
+      unsubPosts();
+      unsubLikes();
+    };
   }, []);
 
   const fetchTeam = async () => {
@@ -323,36 +369,79 @@ export default function App() {
   };
 
   const handleAddComment = async (postId, content, parentId = null) => {
-    if (!currentUser) {
-      setShowAuthModal(true);
-      return;
+    if (!content || !content.trim()) return;
+
+    const newComment = {
+      id: Date.now(),
+      post_id: postId,
+      parent_id: parentId,
+      user_id: currentUser ? currentUser.id : null,
+      author_name: currentUser ? (currentUser.full_name || currentUser.username) : 'Pembaca Budiman (Tamu)',
+      author_avatar: currentUser ? (currentUser.avatar || '/team/bph-anggota-sheiza.png') : '/team/bph-anggota-sheiza.png',
+      content: content.trim(),
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Update state & localStorage
+    setPosts(prev => {
+      const updated = prev.map(p => {
+        if (p.id === postId) {
+          const currentComments = p.comments || [];
+          return {
+            ...p,
+            comments: [...currentComments, newComment]
+          };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('pneumadina_posts', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost(prev => prev ? {
+        ...prev,
+        comments: [...(prev.comments || []), newComment]
+      } : null);
     }
 
+    // 2. Simpan ke Cloud Firestore
+    if (db) {
+      try {
+        const postRef = doc(db, 'posts', String(postId));
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+          const pData = postSnap.data();
+          const comments = pData.comments || [];
+          comments.push(newComment);
+          await setDoc(postRef, { comments }, { merge: true });
+        }
+      } catch (err) {
+        console.warn('Firestore comment notice:', err);
+      }
+    }
+
+    // 3. Simpan ke backend lokal jika tersedia
     try {
-      const res = await fetch(`${API_BASE}/comments`, {
+      fetch(`${API_BASE}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           post_id: postId,
-          user_id: currentUser.id,
-          parent_id: parentId,
-          content
+          user_id: currentUser ? currentUser.id : null,
+          author_name: newComment.author_name,
+          content: newComment.content,
+          parent_id: parentId
         })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('💬 Komentar berhasil dikirim');
-        const resSingle = await fetch(`${API_BASE}/posts/${postId}`);
-        const singleData = await resSingle.json();
-        if (singleData.success) {
-          setSelectedPost(singleData.data);
-          setPosts(posts.map(p => p.id === postId ? singleData.data : p));
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      }).catch(() => {});
+    } catch (e) {}
+
+    showToast('💬 Komentar Anda berhasil dipublikasikan!');
   };
+
+
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();

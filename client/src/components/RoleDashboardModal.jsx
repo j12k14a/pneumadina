@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, PenSquare, Users, FileText, Bookmark, Heart, Send, CheckCircle, Trash2, Check, XCircle, Clock, ExternalLink, Eye, Image as ImageIcon, Plus, Edit2, Upload, Award } from 'lucide-react';
 import PostCard from './PostCard';
+import { db, doc, updateDoc, setDoc, deleteDoc, onSnapshot, collection } from '../firebase';
 
 const DIVISION_CONFIG = {
   bph: { name: 'BPH', fullName: 'Badan Pengurus Harian', color: '#B45309', textColor: '#111827' },
@@ -93,23 +94,45 @@ export default function RoleDashboardModal({
     setMsg(`✅ Peran pengguna berhasil diubah menjadi ${roleName}!`);
     setTimeout(() => setMsg(''), 3000);
 
-    if (onRefreshData) onRefreshData();
+    // 3. Realtime Update ke Cloud Firestore
+    if (db) {
+      try {
+        await updateDoc(doc(db, 'users', String(userId)), {
+          role_id: newRoleId,
+          role_name: roleName
+        });
+      } catch (err) {
+        console.warn('Firestore update role notice:', err);
+      }
+    }
 
-    // 3. Notify backend API if available
+    // 4. Notify backend API jika tersedia
     try {
-      await fetch(`/api/users/${userId}`, {
+      fetch(`/api/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role_id: newRoleId })
-      });
-    } catch (err) {
-      console.warn('Backend API offline, perubahan peran tersimpan di browser.');
-    }
+      }).catch(() => {});
+    } catch (err) {}
   };
 
-  // Fetch Submissions if Admin
+  // Fetch & Listen Submissions if Admin
   useEffect(() => {
     fetchSubmissions();
+
+    if (db && currentUser?.role_id === 1) {
+      try {
+        const unsub = onSnapshot(collection(db, 'submissions'), (snap) => {
+          if (!snap.empty) {
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            list.sort((a, b) => (b.id || 0) - (a.id || 0));
+            setSubmissionList(list);
+          }
+        }, () => {});
+        return () => unsub();
+      } catch (e) {}
+    }
   }, [currentUser]);
 
   const fetchSubmissions = async () => {
@@ -117,9 +140,7 @@ export default function RoleDashboardModal({
       const res = await fetch('/api/submissions');
       const data = await res.json();
       if (data.success) setSubmissionList(data.data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -203,64 +224,103 @@ export default function RoleDashboardModal({
           setEditingMember(null);
           fetchTeamData();
           setTimeout(() => setMsg(''), 3000);
-          return;
         }
       }
-      throw new Error('API offline');
-    } catch (err) {
-      // Fallback update state & localStorage
-      let updated;
-      if (isEdit) {
-        updated = localTeam.map(m => m.id === editingMember.id ? { ...m, ...editingMember } : m);
-      } else {
-        const newM = { ...editingMember, id: Date.now() };
-        updated = [...localTeam, newM];
-      }
-      setLocalTeam(updated);
-      try {
-        localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
-      } catch (e) {}
-      setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
-      setEditingMember(null);
-      if (onRefreshTeam) onRefreshTeam();
-      setTimeout(() => setMsg(''), 3000);
-    } finally {
-      setLoadingAction(false);
+    } catch (err) {}
+
+    // Fallback & Realtime Sync ke Cloud Firestore
+    const mId = editingMember.id || Date.now();
+    const toSave = { ...editingMember, id: mId };
+    let updated;
+    if (isEdit) {
+      updated = localTeam.map(m => m.id === editingMember.id ? { ...m, ...toSave } : m);
+    } else {
+      updated = [...localTeam, toSave];
     }
+    setLocalTeam(updated);
+    try {
+      localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
+    } catch (e) {}
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'team_members', String(mId)), toSave, { merge: true });
+      } catch (e) {
+        console.warn('Firestore save member error:', e);
+      }
+    }
+
+    setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
+    setEditingMember(null);
+    if (onRefreshTeam) onRefreshTeam();
+    setTimeout(() => setMsg(''), 3000);
+    setLoadingAction(false);
   };
 
   const handleDeleteMember = async (memberId, memberName) => {
     if (!window.confirm(`Hapus ${memberName} dari daftar pengurus Pneumadina?`)) return;
+
+    const updated = localTeam.filter(m => m.id !== memberId);
+    setLocalTeam(updated);
     try {
-      const res = await fetch(`/api/team/${memberId}`, { method: 'DELETE' });
-      const contentType = res.headers.get('content-type');
-      if (res.ok && contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success) {
-          setMsg('Anggota berhasil dihapus.');
-          fetchTeamData();
-          setTimeout(() => setMsg(''), 2500);
-          return;
-        }
-      }
-      throw new Error('API offline');
-    } catch (err) {
-      const updated = localTeam.filter(m => m.id !== memberId);
-      setLocalTeam(updated);
+      localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
+    } catch (e) {}
+
+    if (db) {
       try {
-        localStorage.setItem('pneumadina_team_members', JSON.stringify(updated));
-      } catch (e) {}
-      setMsg('Anggota berhasil dihapus.');
-      if (onRefreshTeam) onRefreshTeam();
-      setTimeout(() => setMsg(''), 2500);
+        await deleteDoc(doc(db, 'team_members', String(memberId)));
+      } catch (e) {
+        console.warn('Firestore delete member error:', e);
+      }
     }
+
+    try {
+      fetch(`/api/team/${memberId}`, { method: 'DELETE' }).catch(() => {});
+    } catch (err) {}
+
+    setMsg('Anggota berhasil dihapus.');
+    if (onRefreshTeam) onRefreshTeam();
+    setTimeout(() => setMsg(''), 2500);
   };
 
   // Admin Approve Submission with selected Author
   const handleApproveSubmission = async (subId) => {
     setLoadingAction(true);
+    const authorObj = localUsers.find(u => u.id === assignedAuthorId) || localUsers[1] || { id: 1, full_name: 'Admin', username: 'admin', avatar: '/team/bph-ketua-umum-bram.png' };
+    const catObj = categories.find(c => c.id === assignedCategoryId) || { id: 1, name: 'Non-Fiksi', slug: 'non-fiksi' };
+
+    if (db && selectedSubForReview) {
+      try {
+        await updateDoc(doc(db, 'submissions', String(subId)), { status: 'approved' });
+        const newPost = {
+          id: Date.now(),
+          title: selectedSubForReview.title,
+          slug: selectedSubForReview.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          content: selectedSubForReview.content,
+          excerpt: (selectedSubForReview.content || '').substring(0, 150) + '...',
+          thumbnail: selectedSubForReview.image || 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800',
+          user_id: authorObj.id,
+          author_name: authorObj.full_name,
+          author_username: authorObj.username,
+          author_avatar: authorObj.avatar,
+          category_id: catObj.id,
+          category_name: catObj.name,
+          categories: [catObj],
+          tags: [{ id: 1, name: 'Publikasi' }],
+          status: 'published',
+          likes_count: 0,
+          views_count: 0,
+          read_time: 3,
+          created_at: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'posts', String(newPost.id)), newPost);
+      } catch (e) {
+        console.warn('Firestore approve submission notice:', e);
+      }
+    }
+
     try {
-      const res = await fetch(`/api/submissions/${subId}/approve`, {
+      fetch(`/api/submissions/${subId}/approve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -268,58 +328,53 @@ export default function RoleDashboardModal({
           category_id: assignedCategoryId,
           thumbnail: selectedSubForReview?.image || ''
         })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('🎉 Submisi disetujui & otomatis diterbitkan ke Blog!');
-        setSelectedSubForReview(null);
-        fetchSubmissions();
-        if (onRefreshData) onRefreshData();
-        setTimeout(() => setMsg(''), 3000);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingAction(false);
-    }
+      }).catch(() => {});
+    } catch (err) {}
+
+    setMsg('🎉 Submisi disetujui & otomatis diterbitkan ke Blog!');
+    setSelectedSubForReview(null);
+    fetchSubmissions();
+    if (onRefreshData) onRefreshData();
+    setTimeout(() => setMsg(''), 3000);
+    setLoadingAction(false);
   };
 
   // Admin Reject Submission
   const handleRejectSubmission = async (subId) => {
     setLoadingAction(true);
-    try {
-      const res = await fetch(`/api/submissions/${subId}/reject`, {
-        method: 'PUT'
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('Submisi ditolak.');
-        setSelectedSubForReview(null);
-        fetchSubmissions();
-        setTimeout(() => setMsg(''), 2000);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingAction(false);
+    if (db) {
+      try {
+        await updateDoc(doc(db, 'submissions', String(subId)), { status: 'rejected' });
+      } catch (e) {}
     }
-  };
+    try {
+      fetch(`/api/submissions/${subId}/reject`, { method: 'PUT' }).catch(() => {});
+    } catch (err) {}
 
+    setMsg('Submisi ditolak.');
+    setSelectedSubForReview(null);
+    fetchSubmissions();
+    setTimeout(() => setMsg(''), 2000);
+    setLoadingAction(false);
+  };
 
   // Admin Delete Post Handler
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus artikel ini?')) return;
-    try {
-      const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('Artikel berhasil dihapus!');
-        if (onRefreshData) onRefreshData();
-        setTimeout(() => setMsg(''), 2000);
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'posts', String(postId)));
+      } catch (e) {
+        console.warn('Firestore delete post notice:', e);
       }
-    } catch (err) {
-      console.error(err);
     }
+    try {
+      fetch(`/api/posts/${postId}`, { method: 'DELETE' }).catch(() => {});
+    } catch (err) {}
+
+    setMsg('Artikel berhasil dihapus!');
+    if (onRefreshData) onRefreshData();
+    setTimeout(() => setMsg(''), 2000);
   };
 
   const isRoleAdmin = currentUser?.role_id === 1;

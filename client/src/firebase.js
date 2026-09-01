@@ -1,10 +1,11 @@
-﻿import { initializeApp } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, 
   doc, 
   onSnapshot, 
   setDoc, 
   updateDoc, 
+  deleteDoc, 
   increment, 
   getDoc, 
   collection, 
@@ -35,6 +36,7 @@ export {
   onSnapshot, 
   setDoc, 
   updateDoc, 
+  deleteDoc, 
   increment, 
   getDoc, 
   collection, 

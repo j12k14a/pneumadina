@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, Image, Tag, Plus, Check, Layers } from 'lucide-react';
+import { db, doc, setDoc } from '../firebase';
 
 export default function Studio({ onClose, categories, tags, currentUser, onPostCreated, onCategoryCreated }) {
   const [title, setTitle] = useState('');
@@ -89,8 +90,51 @@ export default function Studio({ onClose, categories, tags, currentUser, onPostC
     setLoading(true);
     setErrorMsg('');
 
+    const catObj = localCategories.find(c => c.id === Number(selectedCategory)) || localCategories[0] || { id: 1, name: 'Non-Fiksi', slug: 'non-fiksi' };
+    const matchedTags = localTags.filter(t => selectedTags.includes(t.id));
+
+    const newPost = {
+      id: Date.now(),
+      title: title.trim(),
+      slug: title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      content: content.trim(),
+      excerpt: content.trim().substring(0, 150) + '...',
+      thumbnail: thumbnail.trim() || 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800',
+      user_id: currentUser.id,
+      author_name: currentUser.full_name,
+      author_username: currentUser.username,
+      author_avatar: currentUser.avatar || '/team/bph-anggota-sheiza.png',
+      category_id: catObj.id,
+      category_name: catObj.name,
+      categories: [catObj],
+      tags: matchedTags.length > 0 ? matchedTags : [{ id: 1, name: 'Editorial' }],
+      status: 'published',
+      likes_count: 0,
+      views_count: 0,
+      read_time: Math.max(1, Math.round(content.split(/\s+/).length / 200)),
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Simpan ke Cloud Firestore (Realtime ke seluruh dunia)
+    if (db) {
+      try {
+        await setDoc(doc(db, 'posts', String(newPost.id)), newPost);
+      } catch (e) {
+        console.warn('Firestore post save notice:', e);
+      }
+    }
+
+    // 2. Simpan ke cache lokal
     try {
-      const res = await fetch('/api/posts', {
+      const savedPosts = localStorage.getItem('pneumadina_posts');
+      const pList = savedPosts ? JSON.parse(savedPosts) : [];
+      pList.unshift(newPost);
+      localStorage.setItem('pneumadina_posts', JSON.stringify(pList));
+    } catch (e) {}
+
+    // 3. Notifikasi backend lokal jika aktif
+    try {
+      fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -102,21 +146,12 @@ export default function Studio({ onClose, categories, tags, currentUser, onPostC
           category_ids: [selectedCategory],
           tag_ids: selectedTags
         })
-      });
+      }).catch(() => {});
+    } catch (err) {}
 
-      const data = await res.json();
-      if (data.success) {
-        onPostCreated();
-        onClose();
-      } else {
-        setErrorMsg(data.message || 'Gagal menerbitkan artikel.');
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Terjadi kesalahan koneksi server.');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
+    onPostCreated();
+    onClose();
   };
 
   return (
