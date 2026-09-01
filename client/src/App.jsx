@@ -16,17 +16,27 @@ import TeamSection from './components/TeamSection';
 import PneumadinaLogo from './components/PneumadinaLogo';
 import { Filter, Layers, Flame, ArrowUpDown, Send, CheckCircle2, Globe, Heart } from 'lucide-react';
 import { SEED_DATA } from './data/seedData';
+import { db, doc, onSnapshot, setDoc, increment } from './firebase';
 
 const API_BASE = '/api';
 
 export default function App() {
   const [posts, setPosts] = useState(() => {
+    let initialPosts = SEED_DATA.posts;
     try {
       const saved = localStorage.getItem('pneumadina_posts');
-      return saved ? JSON.parse(saved) : SEED_DATA.posts;
+      if (saved) initialPosts = JSON.parse(saved);
+      const dynamicLikes = JSON.parse(localStorage.getItem('pneumadina_dynamic_likes') || '{}');
+      initialPosts = initialPosts.map(p => {
+        if (dynamicLikes[p.id] !== undefined) {
+          return { ...p, likes_count: dynamicLikes[p.id] };
+        }
+        return p;
+      });
     } catch {
-      return SEED_DATA.posts;
+      initialPosts = SEED_DATA.posts;
     }
+    return initialPosts;
   });
   const [categories, setCategories] = useState(SEED_DATA.categories);
   const [tags, setTags] = useState(SEED_DATA.tags);
@@ -103,6 +113,35 @@ export default function App() {
     fetchTags();
     fetchUsers();
     fetchTeam();
+
+    // Realtime Cloud Firestore Listener untuk Sinkronisasi Like Multi-Device
+    if (db) {
+      try {
+        const unsub = onSnapshot(doc(db, 'stats', 'likes_counts'), (snap) => {
+          if (snap.exists()) {
+            const remoteCounts = snap.data() || {};
+            setPosts(prevPosts => {
+              const updated = prevPosts.map(p => {
+                if (remoteCounts[p.id] !== undefined) {
+                  return { ...p, likes_count: remoteCounts[p.id] };
+                }
+                return p;
+              });
+              try {
+                localStorage.setItem('pneumadina_posts', JSON.stringify(updated));
+                const currentDynamic = JSON.parse(localStorage.getItem('pneumadina_dynamic_likes') || '{}');
+                Object.assign(currentDynamic, remoteCounts);
+                localStorage.setItem('pneumadina_dynamic_likes', JSON.stringify(currentDynamic));
+              } catch (e) {}
+              return updated;
+            });
+          }
+        }, () => {
+          // Abaikan jika database belum diaktifkan di console
+        });
+        return () => unsub();
+      } catch (e) {}
+    }
   }, []);
 
   const fetchTeam = async () => {
@@ -198,9 +237,23 @@ export default function App() {
       localStorage.setItem('pneumadina_guest_likes', JSON.stringify(newLikedIds));
     } catch (e) {}
 
-    setPosts(prevPosts => prevPosts.map(p => 
-      p.id === postId ? { ...p, likes_count: Math.max(0, (p.likes_count || 0) + delta) } : p
-    ));
+    let newCount = 0;
+    setPosts(prevPosts => {
+      const updated = prevPosts.map(p => {
+        if (p.id === postId) {
+          newCount = Math.max(0, (p.likes_count || 0) + delta);
+          return { ...p, likes_count: newCount };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('pneumadina_posts', JSON.stringify(updated));
+        const dynamicLikes = JSON.parse(localStorage.getItem('pneumadina_dynamic_likes') || '{}');
+        dynamicLikes[postId] = newCount;
+        localStorage.setItem('pneumadina_dynamic_likes', JSON.stringify(dynamicLikes));
+      } catch (e) {}
+      return updated;
+    });
 
     if (selectedPost && selectedPost.id === postId) {
       setSelectedPost(prev => prev ? { ...prev, likes_count: Math.max(0, (prev.likes_count || 0) + delta) } : null);
@@ -208,6 +261,19 @@ export default function App() {
 
     showToast(isCurrentlyLiked ? 'Like dibatalkan' : '❤️ Terima kasih! Artikel disukai');
 
+    // 1. Realtime Sync ke Cloud Firestore (Aktif otomatis saat Firestore dibuat)
+    if (db) {
+      try {
+        const statsRef = doc(db, 'stats', 'likes_counts');
+        await setDoc(statsRef, {
+          [postId]: increment(delta)
+        }, { merge: true });
+      } catch (err) {
+        // Fallback aman jika database belum dibuat di console
+      }
+    }
+
+    // 2. Sync ke backend lokal jika tersedia
     try {
       let guestId = localStorage.getItem('pneumadina_guest_id');
       if (!guestId) {
@@ -225,7 +291,7 @@ export default function App() {
         })
       });
     } catch (err) {
-      console.error('Like sync error:', err);
+      // Backend offline
     }
   };
 
