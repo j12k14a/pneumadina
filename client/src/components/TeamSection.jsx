@@ -19,7 +19,7 @@ export const TEAM_DIVISIONS = [
 ];
 
 export const TEAM_MEMBERS = [
-  // BPH
+  // BARIS 1: BPH (3 orang) + KADERISASI (Djordhy, 1 orang di sebelah kanan Sheiza)
   {
     id: 'bram',
     name: 'Bram',
@@ -53,7 +53,19 @@ export const TEAM_MEMBERS = [
     instagram: '@pneumadina',
     desc: 'Mengelola administrasi persuratan, notulensi, dan tata kelola organisasi.'
   },
-  // LITBANG
+  {
+    id: 'djordhy',
+    name: 'Djordhy',
+    role: 'Ketua Divisi',
+    isLeader: true,
+    divisionId: 'kaderisasi',
+    divisionName: 'Kaderisasi',
+    image: '/team/kaderisasi-ketua-djordhy.png',
+    instagram: '@pneumadina',
+    desc: 'Mengembangkan potensi anggota, perekrutan, dan pembinaan kultur komunitas.'
+  },
+
+  // BARIS 2: LITBANG (Diandra di samping kiri Jawsyan, Mariam, Tsaqilah)
   {
     id: 'diandra',
     name: 'Diandra',
@@ -98,7 +110,8 @@ export const TEAM_MEMBERS = [
     instagram: '@pneumadina',
     desc: 'Analisa gagasan kritis, pengumpulan data karya, dan riset pembaca.'
   },
-  // PDD
+
+  // BARIS 3: PDD (Hilda di samping kiri Joefunny) + REDAKSI (Diaz, Reza)
   {
     id: 'hilda',
     name: 'Hilda',
@@ -121,19 +134,6 @@ export const TEAM_MEMBERS = [
     instagram: '@pneumadina',
     desc: 'Dokumentasi kegiatan, desain poster kreatif, dan tata visual karya.'
   },
-  // KADERISASI
-  {
-    id: 'djordhy',
-    name: 'Djordhy',
-    role: 'Ketua Divisi',
-    isLeader: true,
-    divisionId: 'kaderisasi',
-    divisionName: 'Kaderisasi',
-    image: '/team/kaderisasi-ketua-djordhy.png',
-    instagram: '@pneumadina',
-    desc: 'Mengembangkan potensi anggota, perekrutan, dan pembinaan kultur komunitas.'
-  },
-  // REDAKSI
   {
     id: 'diaz',
     name: 'Diaz',
@@ -156,6 +156,8 @@ export const TEAM_MEMBERS = [
     instagram: '@pneumadina',
     desc: 'Penyuntingan naskah esai, fiksi, dan pemeriksaan akurasi wacana.'
   },
+
+  // BARIS 4: REDAKSI LANJUTAN (Jasmine, Ayra)
   {
     id: 'jasmine',
     name: 'Jasmine',
@@ -329,7 +331,7 @@ export default function TeamSection() {
               key={member.id}
               className="animate-card-pop"
               style={{
-                animationDelay: `${idx * 0.04}s`,
+                animationDelay: `${idx * 0.03}s`,
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
                 border: '2.5px solid #111827',
@@ -350,7 +352,7 @@ export default function TeamSection() {
               }}
               onClick={() => setSelectedPreview(member)}
             >
-              {/* Member Poster Image Container */}
+              {/* Member Poster Image Container (Unblocked, Clean View) */}
               <div style={{
                 position: 'relative',
                 width: '100%',
@@ -374,7 +376,7 @@ export default function TeamSection() {
                   onMouseLeave={(e) => e.target.style.transform = 'scale(1.0)'}
                 />
 
-                {/* Floating Division Pill */}
+                {/* Floating Division Pill on Top-Left */}
                 <div style={{
                   position: 'absolute',
                   top: '12px',
@@ -393,7 +395,7 @@ export default function TeamSection() {
                   {member.divisionId.toUpperCase()}
                 </div>
 
-                {/* Expand Overlay Button */}
+                {/* Expand Overlay Button on Top-Right */}
                 <div style={{
                   position: 'absolute',
                   top: '12px',
@@ -412,36 +414,9 @@ export default function TeamSection() {
                 }}>
                   <Maximize2 size={15} />
                 </div>
-
-                {/* Role Ribbon on bottom of image */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '10px',
-                  left: '12px',
-                  right: '12px',
-                  backgroundColor: member.isLeader ? '#FFD600' : '#FFFFFF',
-                  color: '#111827',
-                  border: '2px solid #111827',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  fontWeight: '900',
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  boxShadow: '3px 3px 0px 0px #111827'
-                }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    {member.isLeader && <Award size={13} color="#111827" />}
-                    {member.role}
-                  </span>
-                  <span style={{ fontSize: '0.65rem', opacity: 0.8, textTransform: 'uppercase' }}>
-                    {member.divisionName}
-                  </span>
-                </div>
               </div>
 
-              {/* Card Body */}
+              {/* Card Body with Clear Typography & Uncluttered Role Badges */}
               <div style={{
                 padding: '1rem',
                 display: 'flex',
@@ -451,14 +426,49 @@ export default function TeamSection() {
                 gap: '8px'
               }}>
                 <div>
-                  <h3 className="font-serif" style={{
-                    fontSize: '1.25rem',
-                    fontWeight: '900',
-                    color: '#111827',
-                    marginBottom: '2px'
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    marginBottom: '4px'
                   }}>
-                    {member.name}
-                  </h3>
+                    <h3 className="font-serif" style={{
+                      fontSize: '1.3rem',
+                      fontWeight: '900',
+                      color: '#111827',
+                      margin: 0
+                    }}>
+                      {member.name}
+                    </h3>
+
+                    <span style={{
+                      backgroundColor: member.isLeader ? '#FFD600' : '#F3F4F6',
+                      color: '#111827',
+                      border: '1.5px solid #111827',
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      fontWeight: '800',
+                      fontSize: '0.7rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {member.isLeader && <Award size={12} color="#111827" />}
+                      {member.role}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontSize: '0.75rem',
+                    fontWeight: '800',
+                    color: '#2563EB',
+                    marginBottom: '6px'
+                  }}>
+                    Divisi {member.divisionName}
+                  </div>
+
                   <p style={{
                     fontSize: '0.8rem',
                     color: '#4B5563',
