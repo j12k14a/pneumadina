@@ -127,6 +127,18 @@ export default function App() {
             uList.sort((a, b) => (a.id || 0) - (b.id || 0));
             setUsers(uList);
             try { localStorage.setItem('pneumadina_users', JSON.stringify(uList)); } catch (e) {}
+
+            // Sinkronkan data currentUser jika sedang login
+            setCurrentUser(prevUser => {
+              if (!prevUser) return null;
+              const match = uList.find(u => u.id === prevUser.id || (u.email && u.email.toLowerCase() === prevUser.email?.toLowerCase()));
+              if (match) {
+                const updated = { ...prevUser, ...match };
+                try { localStorage.setItem('pneumadina_user', JSON.stringify(updated)); } catch (e) {}
+                return updated;
+              }
+              return prevUser;
+            });
           }
         }, () => {});
 
