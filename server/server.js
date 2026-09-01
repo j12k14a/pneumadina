@@ -518,20 +518,141 @@ app.post('/api/comments', spamLimiter, async (req, res) => {
 
 app.post('/api/likes', async (req, res) => {
   try {
-    const { post_id, user_id } = req.body;
-    if (!user_id || !post_id) return res.status(400).json({ success: false, message: 'Memerlukan login' });
+    const { post_id, user_id, guest_id } = req.body;
+    if (!post_id) return res.status(400).json({ success: false, message: 'Post ID diperlukan' });
 
-    const existing = await db.query(`SELECT id FROM likes WHERE post_id = ? AND user_id = ?`, [post_id, user_id]);
+    let existing = [];
+    if (user_id) {
+      existing = await db.query(`SELECT id FROM likes WHERE post_id = ? AND user_id = ?`, [post_id, user_id]);
+    } else if (guest_id) {
+      existing = await db.query(`SELECT id FROM likes WHERE post_id = ? AND guest_id = ?`, [post_id, guest_id]);
+    } else {
+      return res.status(400).json({ success: false, message: 'User ID atau Guest ID diperlukan' });
+    }
     
     if (existing && existing.length > 0) {
-      await db.execute(`DELETE FROM likes WHERE post_id = ? AND user_id = ?`, [post_id, user_id]);
-      res.json({ success: true, liked: false, message: 'Like dihapus' });
+      if (user_id) {
+        await db.execute(`DELETE FROM likes WHERE post_id = ? AND user_id = ?`, [post_id, user_id]);
+      } else {
+        await db.execute(`DELETE FROM likes WHERE post_id = ? AND guest_id = ?`, [post_id, guest_id]);
+      }
+      res.json({ success: true, liked: false, message: 'Like dibatalkan' });
     } else {
-      await db.execute(`INSERT INTO likes (user_id, post_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)`, [user_id, post_id]);
+      if (user_id) {
+        await db.execute(`INSERT INTO likes (user_id, post_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)`, [user_id, post_id]);
+      } else {
+        await db.execute(`INSERT INTO likes (guest_id, post_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)`, [guest_id, post_id]);
+      }
       res.json({ success: true, liked: true, message: 'Artikel disukai' });
     }
   } catch (err) {
+    console.error('Like API error:', err);
     res.status(500).json({ success: false, message: 'Terjadi kesalahan sistem' });
+  }
+});
+
+// --- TEAM MEMBERS API ---
+app.get('/api/team', async (req, res) => {
+  try {
+    const members = await db.query(`
+      SELECT * FROM team_members 
+      ORDER BY order_index ASC, id ASC
+    `);
+    res.json({ success: true, count: members.length, data: members });
+  } catch (err) {
+    console.error('Fetch team error:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengambil data tim' });
+  }
+});
+
+app.post('/api/team', async (req, res) => {
+  try {
+    const { name, role, is_leader, division_id, division_name, image, instagram, bio } = req.body;
+    if (!name || !role || !division_id) {
+      return res.status(400).json({ success: false, message: 'Nama, jabatan, dan divisi wajib diisi' });
+    }
+
+    const memberId = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+    const finalImage = image || '/team/bph-ketua-umum-bram.png';
+    const finalIg = instagram ? (instagram.startsWith('@') ? instagram : '@' + instagram) : '@pneumadina';
+
+    const [maxOrder] = await db.query('SELECT MAX(order_index) as max_order FROM team_members');
+    const nextOrder = (maxOrder && maxOrder.max_order ? maxOrder.max_order : 0) + 1;
+
+    const result = await db.execute(`
+      INSERT INTO team_members (member_id, name, role, is_leader, division_id, division_name, image, instagram, bio, order_index)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [memberId, name.trim(), role.trim(), is_leader ? 1 : 0, division_id, division_name || division_id.toUpperCase(), finalImage, finalIg, bio || '', nextOrder]);
+
+    const [created] = await db.query('SELECT * FROM team_members WHERE id = ?', [result.insertId]);
+    res.json({ success: true, message: 'Anggota tim berhasil ditambahkan!', data: created });
+  } catch (err) {
+    console.error('Create team error:', err);
+    res.status(500).json({ success: false, message: 'Gagal menambahkan anggota tim' });
+  }
+});
+
+app.put('/api/team/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, role, is_leader, division_id, division_name, image, instagram, bio, order_index } = req.body;
+
+    if (!name || !role || !division_id) {
+      return res.status(400).json({ success: false, message: 'Nama, jabatan, dan divisi wajib diisi' });
+    }
+
+    const finalIg = instagram ? (instagram.startsWith('@') ? instagram : '@' + instagram) : '@pneumadina';
+
+    await db.execute(`
+      UPDATE team_members SET 
+        name = ?, 
+        role = ?, 
+        is_leader = ?, 
+        division_id = ?, 
+        division_name = ?, 
+        image = ?, 
+        instagram = ?, 
+        bio = ?,
+        order_index = COALESCE(?, order_index)
+      WHERE id = ?
+    `, [name.trim(), role.trim(), is_leader ? 1 : 0, division_id, division_name || division_id.toUpperCase(), image, finalIg, bio || '', order_index || null, id]);
+
+    const [updated] = await db.query('SELECT * FROM team_members WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Data anggota berhasil diperbarui!', data: updated });
+  } catch (err) {
+    console.error('Update team error:', err);
+    res.status(500).json({ success: false, message: 'Gagal memperbarui data anggota' });
+  }
+});
+
+app.delete('/api/team/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute('DELETE FROM team_members WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Anggota berhasil dihapus dari tim' });
+  } catch (err) {
+    console.error('Delete team error:', err);
+    res.status(500).json({ success: false, message: 'Gagal menghapus anggota tim' });
+  }
+});
+
+app.post('/api/team/upload', async (req, res) => {
+  try {
+    const { filename, base64 } = req.body;
+    if (!base64) return res.status(400).json({ success: false, message: 'Data gambar tidak ditemukan' });
+
+    const cleanName = 'team-' + Date.now() + '-' + (filename ? filename.replace(/[^a-zA-Z0-9._-]/g, '') : 'photo.png');
+    const teamDir = path.join(__dirname, '../client/public/team');
+    if (!fs.existsSync(teamDir)) fs.mkdirSync(teamDir, { recursive: true });
+
+    const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    fs.writeFileSync(path.join(teamDir, cleanName), buffer);
+
+    res.json({ success: true, url: '/team/' + cleanName });
+  } catch (err) {
+    console.error('Upload photo error:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengunggah foto' });
   }
 });
 

@@ -1,11 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, PenSquare, Users, FileText, Bookmark, Heart, Send, CheckCircle, Trash2, Check, XCircle, Clock, ExternalLink, Eye, Image as ImageIcon } from 'lucide-react';
+import { X, ShieldCheck, PenSquare, Users, FileText, Bookmark, Heart, Send, CheckCircle, Trash2, Check, XCircle, Clock, ExternalLink, Eye, Image as ImageIcon, Plus, Edit2, Upload, Award } from 'lucide-react';
 import PostCard from './PostCard';
 
-export default function RoleDashboardModal({ currentUser, onClose, allPosts, users, categories, tags, onRefreshData, onOpenStudio, onOpenTerimaPublikasi, onSelectPost, onLike, onBookmark, likedIds, bookmarkedIds }) {
+const DIVISION_CONFIG = {
+  bph: { name: 'BPH', fullName: 'Badan Pengurus Harian', color: '#B45309', textColor: '#111827' },
+  litbang: { name: 'Litbang', fullName: 'Penelitian & Pengembangan', color: '#1D4ED8', textColor: '#FFFFFF' },
+  pdd: { name: 'PDD', fullName: 'Publikasi Desain Dokumentasi', color: '#A21CAF', textColor: '#FFFFFF' },
+  kaderisasi: { name: 'Kaderisasi', fullName: 'Kaderisasi & Pembinaan', color: '#047857', textColor: '#FFFFFF' },
+  redaksi: { name: 'Redaksi', fullName: 'Redaksi Editorial', color: '#C2410C', textColor: '#FFFFFF' },
+};
+
+export default function RoleDashboardModal({ 
+  currentUser, 
+  onClose, 
+  allPosts, 
+  users, 
+  categories, 
+  tags, 
+  teamMembers = [], 
+  onRefreshTeam, 
+  onRefreshData, 
+  onOpenStudio, 
+  onOpenTerimaPublikasi, 
+  onSelectPost, 
+  onLike, 
+  onBookmark, 
+  likedIds, 
+  bookmarkedIds 
+}) {
   const [activeTab, setActiveTab] = useState(currentUser?.role_id === 1 ? 'submissions' : currentUser?.role_id === 2 ? 'my-posts' : 'bookmarks');
   const [submissionList, setSubmissionList] = useState([]);
   const [selectedSubForReview, setSelectedSubForReview] = useState(null);
+
+  // Team Management State
+  const [localTeam, setLocalTeam] = useState(teamMembers);
+  const [teamFilter, setTeamFilter] = useState('all');
+  const [teamSearch, setTeamSearch] = useState('');
+  const [editingMember, setEditingMember] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
   // Selection states for Approval
   const [assignedAuthorId, setAssignedAuthorId] = useState(2); // Default Diandra
@@ -27,6 +59,104 @@ export default function RoleDashboardModal({ currentUser, onClose, allPosts, use
       const res = await fetch('/api/submissions');
       const data = await res.json();
       if (data.success) setSubmissionList(data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (teamMembers && teamMembers.length > 0) {
+      setLocalTeam(teamMembers);
+    } else {
+      fetchTeamData();
+    }
+  }, [teamMembers]);
+
+  const fetchTeamData = async () => {
+    try {
+      const res = await fetch('/api/team');
+      const data = await res.json();
+      if (data.success) {
+        setLocalTeam(data.data);
+        if (onRefreshTeam) onRefreshTeam();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePhotoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const res = await fetch('/api/team/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, base64: event.target.result })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setEditingMember(prev => ({ ...prev, image: data.url }));
+          setMsg('📸 Foto berhasil diunggah!');
+          setTimeout(() => setMsg(''), 2500);
+        } else {
+          alert(data.message || 'Gagal mengunggah foto');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUploadingPhoto(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveMember = async (e) => {
+    e.preventDefault();
+    if (!editingMember.name || !editingMember.role || !editingMember.division_id) {
+      alert('Nama, peran, dan divisi wajib diisi!');
+      return;
+    }
+    setLoadingAction(true);
+    try {
+      const isEdit = !!editingMember.id;
+      const url = isEdit ? `/api/team/${editingMember.id}` : '/api/team';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingMember)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMsg(isEdit ? '✅ Data anggota berhasil diperbarui!' : '🎉 Anggota baru berhasil ditambahkan!');
+        setEditingMember(null);
+        fetchTeamData();
+        setTimeout(() => setMsg(''), 3000);
+      } else {
+        alert(data.message || 'Terjadi kesalahan');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleDeleteMember = async (memberId, memberName) => {
+    if (!window.confirm(`Hapus ${memberName} dari daftar pengurus Pneumadina?`)) return;
+    try {
+      const res = await fetch(`/api/team/${memberId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setMsg('Anggota berhasil dihapus.');
+        fetchTeamData();
+        setTimeout(() => setMsg(''), 2500);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -294,6 +424,26 @@ export default function RoleDashboardModal({ currentUser, onClose, allPosts, use
                 }}
               >
                 <FileText size={15} color="#2563EB" /> Moderasi / Pengumuman ({allPosts.length})
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('team')}
+                style={{
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderBottom: activeTab === 'team' ? '3px solid #FFD600' : 'none',
+                  backgroundColor: activeTab === 'team' ? '#FFFFFF' : 'transparent',
+                  fontWeight: '800',
+                  color: '#111827',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.825rem',
+                  borderRadius: '6px'
+                }}
+              >
+                <Users size={15} color="#059669" /> Kelola Tim & Divisi ({localTeam.length})
               </button>
             </>
           )}
@@ -592,6 +742,534 @@ export default function RoleDashboardModal({ currentUser, onClose, allPosts, use
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB: Admin Kelola Tim & Divisi */}
+          {activeTab === 'team' && isRoleAdmin && (
+            <div>
+              {/* Header with Search & Add Button */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '900', color: '#111827', margin: 0 }}>
+                    👥 Kelola Struktur Tim & Rekrutmen Divisi
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#4B5563', margin: '4px 0 0 0', fontWeight: '600' }}>
+                    Tambah anggota baru, perbarui poster foto, jabatan, bio, atau hapus anggota pengurus.
+                  </p>
+                </div>
+
+                <button
+                  className="btn btn-yellow"
+                  onClick={() => setEditingMember({
+                    name: '',
+                    role: 'Anggota',
+                    is_leader: 0,
+                    division_id: 'bph',
+                    division_name: 'Badan Pengurus Harian',
+                    image: '/team/bph-ketua-umum-bram.png',
+                    instagram: '@pneumadina',
+                    bio: ''
+                  })}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '0.825rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '3px 3px 0px 0px #111827'
+                  }}
+                >
+                  <Plus size={16} /> + Tambah Anggota / Rekrutmen Baru
+                </button>
+              </div>
+
+              {/* Filters & Search */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px',
+                marginBottom: '16px',
+                backgroundColor: '#FAF8F5',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                border: '1.5px solid #111827'
+              }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {['all', 'bph', 'litbang', 'pdd', 'kaderisasi', 'redaksi'].map(dId => (
+                    <button
+                      key={dId}
+                      onClick={() => setTeamFilter(dId)}
+                      className={`btn ${teamFilter === dId ? 'btn-yellow' : 'btn-outline'}`}
+                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                    >
+                      {dId === 'all' ? 'Semua Divisi' : dId.toUpperCase()} (
+                        {dId === 'all' 
+                          ? localTeam.length 
+                          : localTeam.filter(m => (m.division_id || m.divisionId) === dId).length}
+                      )
+                    </button>
+                  ))}
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Cari anggota / jabatan..."
+                  value={teamSearch}
+                  onChange={(e) => setTeamSearch(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #111827',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    width: '200px'
+                  }}
+                />
+              </div>
+
+              {/* Team Members Grid Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '14px',
+                maxHeight: '52vh',
+                overflowY: 'auto',
+                paddingRight: '4px'
+              }}>
+                {localTeam
+                  .filter(m => teamFilter === 'all' || (m.division_id || m.divisionId) === teamFilter)
+                  .filter(m => !teamSearch || m.name.toLowerCase().includes(teamSearch.toLowerCase()) || m.role.toLowerCase().includes(teamSearch.toLowerCase()))
+                  .map(member => {
+                    const divInfo = DIVISION_CONFIG[member.division_id || member.divisionId] || { name: 'Divisi', color: '#111827' };
+                    return (
+                      <div
+                        key={member.id}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          border: '2px solid #111827',
+                          borderRadius: '12px',
+                          boxShadow: '3px 3px 0px 0px #111827',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div style={{ display: 'flex', gap: '10px', padding: '10px', alignItems: 'center' }}>
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            style={{
+                              width: '56px',
+                              height: '56px',
+                              borderRadius: '8px',
+                              border: '1.5px solid #111827',
+                              objectFit: 'cover',
+                              backgroundColor: '#111827',
+                              flexShrink: 0
+                            }}
+                          />
+                          <div style={{ flexGrow: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#111827' }}>
+                                {member.name}
+                              </span>
+                              {(member.is_leader === 1 || member.isLeader) && (
+                                <span style={{
+                                  backgroundColor: '#FFD600',
+                                  border: '1px solid #111827',
+                                  borderRadius: '4px',
+                                  padding: '1px 5px',
+                                  fontSize: '0.625rem',
+                                  fontWeight: '900',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '2px'
+                                }}>
+                                  <Award size={10} /> Ketua
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', fontWeight: '800', color: divInfo.color, marginTop: '2px' }}>
+                              {member.role} • {divInfo.name}
+                            </div>
+
+                            <div style={{ fontSize: '0.7rem', color: '#6B7280', marginTop: '2px' }}>
+                              {member.instagram || '@pneumadina'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {member.bio && (
+                          <div style={{
+                            padding: '0 10px 8px 10px',
+                            fontSize: '0.725rem',
+                            color: '#4B5563',
+                            lineHeight: '1.3',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {member.bio}
+                          </div>
+                        )}
+
+                        <div style={{
+                          display: 'flex',
+                          borderTop: '1px solid #E5E7EB',
+                          backgroundColor: '#FAF8F5'
+                        }}>
+                          <button
+                            onClick={() => setEditingMember({
+                              ...member,
+                              is_leader: member.is_leader === 1 || member.isLeader ? 1 : 0
+                            })}
+                            style={{
+                              flex: 1,
+                              padding: '8px',
+                              border: 'none',
+                              borderRight: '1px solid #E5E7EB',
+                              backgroundColor: 'transparent',
+                              fontWeight: '800',
+                              fontSize: '0.75rem',
+                              color: '#2563EB',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Edit2 size={13} /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMember(member.id, member.name)}
+                            style={{
+                              flex: 1,
+                              padding: '8px',
+                              border: 'none',
+                              backgroundColor: 'transparent',
+                              fontWeight: '800',
+                              fontSize: '0.75rem',
+                              color: '#DC2626',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Trash2 size={13} /> Hapus
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Add / Edit Member Modal Popup */}
+              {editingMember && (
+                <div
+                  className="animate-backdrop"
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(17, 24, 39, 0.75)',
+                    backdropFilter: 'blur(5px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 600,
+                    padding: '16px'
+                  }}
+                  onClick={() => setEditingMember(null)}
+                >
+                  <div
+                    className="animate-popup-enter"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '3px solid #111827',
+                      boxShadow: '8px 8px 0px 0px #111827',
+                      width: '100%',
+                      maxWidth: '560px',
+                      maxHeight: '90vh',
+                      overflowY: 'auto',
+                      padding: '20px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '2px solid #111827', paddingBottom: '10px' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: '900', color: '#111827', margin: 0 }}>
+                        {editingMember.id ? '✏️ Edit Data Anggota Pengurus' : '✨ Tambah Anggota / Rekrutmen Baru'}
+                      </h3>
+                      <button
+                        onClick={() => setEditingMember(null)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveMember} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {/* Name & Role */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                            Nama Lengkap *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Contoh: Bram, Nadia..."
+                            value={editingMember.name || ''}
+                            onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: '2px solid #111827',
+                              fontWeight: '700',
+                              fontSize: '0.85rem'
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                            Jabatan / Peran *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Ketua Divisi / Anggota / Sekretaris..."
+                            value={editingMember.role || ''}
+                            onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: '2px solid #111827',
+                              fontWeight: '700',
+                              fontSize: '0.85rem'
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Division & Is Leader */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', alignItems: 'center' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                            Divisi *
+                          </label>
+                          <select
+                            value={editingMember.division_id || 'bph'}
+                            onChange={(e) => {
+                              const divId = e.target.value;
+                              const divName = DIVISION_CONFIG[divId]?.fullName || divId.toUpperCase();
+                              setEditingMember({ ...editingMember, division_id: divId, division_name: divName });
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: '2px solid #111827',
+                              fontWeight: '700',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            <option value="bph">🏛️ BPH (Badan Pengurus Harian)</option>
+                            <option value="litbang">🔬 Litbang (Penelitian & Pengembangan)</option>
+                            <option value="pdd">🎨 PDD (Publikasi Desain Dokumentasi)</option>
+                            <option value="kaderisasi">🌱 Kaderisasi (Kaderisasi & Pembinaan)</option>
+                            <option value="redaksi">✍️ Redaksi (Redaksi Editorial)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                            Status Kepemimpinan
+                          </label>
+                          <label style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 12px',
+                            backgroundColor: editingMember.is_leader ? '#FFFBEB' : '#F9FAFB',
+                            border: '2px solid #111827',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '700',
+                            fontSize: '0.8rem'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={!!editingMember.is_leader}
+                              onChange={(e) => setEditingMember({ ...editingMember, is_leader: e.target.checked ? 1 : 0 })}
+                            />
+                            <span>⭐ Ketua / Pimpinan Divisi</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Instagram Handle */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                          Username Instagram
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="@pneumadina atau @username_pribadi"
+                          value={editingMember.instagram || ''}
+                          onChange={(e) => setEditingMember({ ...editingMember, instagram: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '2px solid #111827',
+                            fontWeight: '700',
+                            fontSize: '0.85rem'
+                          }}
+                        />
+                      </div>
+
+                      {/* Image URL & File Upload */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                          Foto Poster / Avatar Anggota
+                        </label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="Path: /team/bph-ketua-umum-bram.png atau URL eksternal"
+                            value={editingMember.image || ''}
+                            onChange={(e) => setEditingMember({ ...editingMember, image: e.target.value })}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: '2px solid #111827',
+                              fontWeight: '600',
+                              fontSize: '0.8rem'
+                            }}
+                          />
+
+                          <label className="btn btn-outline" style={{
+                            padding: '8px 12px',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            <Upload size={14} />
+                            <span>{uploadingPhoto ? 'Mengunggah...' : '📁 Unggah Foto'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              onChange={handlePhotoFileChange}
+                              disabled={uploadingPhoto}
+                            />
+                          </label>
+                        </div>
+
+                        {/* Image Preview Box */}
+                        {editingMember.image && (
+                          <div style={{
+                            marginTop: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '8px',
+                            backgroundColor: '#FAF8F5',
+                            borderRadius: '8px',
+                            border: '1.5px dashed #111827'
+                          }}>
+                            <img
+                              src={editingMember.image}
+                              alt="Pratinjau"
+                              style={{
+                                width: '48px',
+                                height: '56px',
+                                objectFit: 'cover',
+                                borderRadius: '6px',
+                                border: '1.5px solid #111827'
+                              }}
+                            />
+                            <div style={{ fontSize: '0.75rem', color: '#4B5563', fontWeight: '600' }}>
+                              Pratinjau foto pengurus saat ini
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bio / Ringkasan Deskripsi */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: '800', marginBottom: '4px' }}>
+                          Bio / Ringkasan Peran di Pneumadina
+                        </label>
+                        <textarea
+                          rows={3}
+                          placeholder="Tuliskan fokus riset, peran, atau kontribusi anggota ini di divisi..."
+                          value={editingMember.bio || ''}
+                          onChange={(e) => setEditingMember({ ...editingMember, bio: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '2px solid #111827',
+                            fontWeight: '500',
+                            fontSize: '0.8rem',
+                            resize: 'vertical'
+                          }}
+                        />
+                      </div>
+
+                      {/* Submit / Cancel Buttons */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={() => setEditingMember(null)}
+                          style={{ padding: '8px 16px', fontSize: '0.825rem' }}
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-yellow"
+                          disabled={loadingAction}
+                          style={{
+                            padding: '8px 20px',
+                            fontSize: '0.825rem',
+                            boxShadow: '3px 3px 0px 0px #111827'
+                          }}
+                        >
+                          {loadingAction ? 'Menyimpan...' : (editingMember.id ? '💾 Simpan Perubahan' : '✨ Tambahkan Anggota')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -56,9 +56,19 @@ export default function App() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribedToast, setSubscribedToast] = useState(false);
 
-  // Local Likes & Bookmarks Tracking
-  const [likedIds, setLikedIds] = useState([1, 2]);
+  // Local Likes & Bookmarks Tracking (Mendukung Like Publik / Tamu)
+  const [likedIds, setLikedIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pneumadina_guest_likes');
+      return saved ? JSON.parse(saved) : [1, 2];
+    } catch (e) {
+      return [1, 2];
+    }
+  });
   const [bookmarkedIds, setBookmarkedIds] = useState([1, 3]);
+
+  // Dynamic Team Members State
+  const [teamMembers, setTeamMembers] = useState([]);
 
   const showToast = (message) => {
     setToastMsg(message);
@@ -70,7 +80,18 @@ export default function App() {
     fetchCategories();
     fetchTags();
     fetchUsers();
+    fetchTeam();
   }, []);
+
+  const fetchTeam = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/team`);
+      const data = await res.json();
+      if (data.success) setTeamMembers(data.data);
+    } catch (err) {
+      console.error('Fetch team error:', err);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -133,15 +154,17 @@ export default function App() {
   };
 
   const handleLike = async (postId) => {
-    if (!currentUser) {
-      setShowAuthModal(true);
-      return;
-    }
-
     const isCurrentlyLiked = likedIds.includes(postId);
     const delta = isCurrentlyLiked ? -1 : 1;
 
-    setLikedIds(prev => isCurrentlyLiked ? prev.filter(id => id !== postId) : [...prev, postId]);
+    const newLikedIds = isCurrentlyLiked 
+      ? likedIds.filter(id => id !== postId) 
+      : [...likedIds, postId];
+
+    setLikedIds(newLikedIds);
+    try {
+      localStorage.setItem('pneumadina_guest_likes', JSON.stringify(newLikedIds));
+    } catch (e) {}
 
     setPosts(prevPosts => prevPosts.map(p => 
       p.id === postId ? { ...p, likes_count: Math.max(0, (p.likes_count || 0) + delta) } : p
@@ -151,13 +174,23 @@ export default function App() {
       setSelectedPost(prev => prev ? { ...prev, likes_count: Math.max(0, (prev.likes_count || 0) + delta) } : null);
     }
 
-    showToast(isCurrentlyLiked ? 'Like dihapus' : '❤️ Artikel disukai!');
+    showToast(isCurrentlyLiked ? 'Like dibatalkan' : '❤️ Terima kasih! Artikel disukai');
 
     try {
+      let guestId = localStorage.getItem('pneumadina_guest_id');
+      if (!guestId) {
+        guestId = 'guest_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        localStorage.setItem('pneumadina_guest_id', guestId);
+      }
+
       await fetch(`${API_BASE}/likes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ post_id: postId, user_id: currentUser.id })
+        body: JSON.stringify({ 
+          post_id: postId, 
+          user_id: currentUser ? currentUser.id : null,
+          guest_id: currentUser ? null : guestId
+        })
       });
     } catch (err) {
       console.error('Like sync error:', err);
@@ -532,7 +565,7 @@ export default function App() {
         )}
 
         {/* Struktur Divisi & Tim Pengurus Komunitas Pneumadina */}
-        <TeamSection />
+        <TeamSection teamMembers={teamMembers} onRefreshTeam={fetchTeam} />
 
       </main>
 
@@ -781,7 +814,9 @@ export default function App() {
           users={users}
           categories={categories}
           tags={tags}
-          onRefreshData={() => { fetchPosts(); fetchUsers(); }}
+          teamMembers={teamMembers}
+          onRefreshTeam={fetchTeam}
+          onRefreshData={() => { fetchPosts(); fetchUsers(); fetchTeam(); }}
           onOpenStudio={() => setShowStudio(true)}
           onOpenTerimaPublikasi={() => setShowTerimaPublikasi(true)}
           onSelectPost={(p) => { setShowRoleDashboard(false); setSelectedPost(p); }}

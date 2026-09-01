@@ -182,13 +182,36 @@ export const TEAM_MEMBERS = [
   }
 ];
 
-export default function TeamSection() {
+export default function TeamSection({ teamMembers = [], onRefreshTeam }) {
   const [activeDivision, setActiveDivision] = useState('all');
   const [selectedPreview, setSelectedPreview] = useState(null);
 
+  const rawMembers = (teamMembers && teamMembers.length > 0) ? teamMembers : TEAM_MEMBERS;
+  
+  const normalizedMembers = rawMembers.map(m => ({
+    id: m.id || m.member_id,
+    name: m.name,
+    role: m.role,
+    isLeader: m.is_leader === 1 || m.is_leader === true || m.isLeader === true,
+    divisionId: m.division_id || m.divisionId || 'bph',
+    divisionName: m.division_name || m.divisionName || 'Pneumadina',
+    image: m.image,
+    instagram: m.instagram || '@pneumadina',
+    desc: m.bio || m.desc || 'Penggerak literasi dan komunitas Pneumadina.'
+  }));
+
+  const dynamicDivisions = [
+    { id: 'all', name: 'Semua Divisi', count: normalizedMembers.length, icon: '👥' },
+    { id: 'bph', name: 'BPH', fullName: 'Badan Pengurus Harian', count: normalizedMembers.filter(m => m.divisionId === 'bph').length, icon: '🏛️', color: '#FFD600', textColor: '#111827' },
+    { id: 'litbang', name: 'Litbang', fullName: 'Penelitian & Pengembangan', count: normalizedMembers.filter(m => m.divisionId === 'litbang').length, icon: '🔬', color: '#2563EB', textColor: '#FFFFFF' },
+    { id: 'pdd', name: 'PDD', fullName: 'Publikasi Desain Dokumentasi', count: normalizedMembers.filter(m => m.divisionId === 'pdd').length, icon: '🎨', color: '#D946EF', textColor: '#FFFFFF' },
+    { id: 'kaderisasi', name: 'Kaderisasi', fullName: 'Kaderisasi & Pembinaan', count: normalizedMembers.filter(m => m.divisionId === 'kaderisasi').length, icon: '🌱', color: '#059669', textColor: '#FFFFFF' },
+    { id: 'redaksi', name: 'Redaksi', fullName: 'Redaksi Editorial', count: normalizedMembers.filter(m => m.divisionId === 'redaksi').length, icon: '✍️', color: '#EA580C', textColor: '#FFFFFF' },
+  ];
+
   const filteredMembers = activeDivision === 'all'
-    ? TEAM_MEMBERS
-    : TEAM_MEMBERS.filter(m => m.divisionId === activeDivision);
+    ? normalizedMembers
+    : normalizedMembers.filter(m => m.divisionId === activeDivision);
 
   const getDivisionBadgeColor = (divId) => {
     switch (divId) {
@@ -240,7 +263,7 @@ export default function TeamSection() {
                 borderRadius: '9999px',
                 border: '1.5px solid #111827'
               }}>
-                14 PENGGERAK
+                {normalizedMembers.length} PENGGERAK
               </span>
             </div>
             <h2 className="font-serif" style={{
@@ -284,7 +307,7 @@ export default function TeamSection() {
           <span style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827', marginRight: '4px' }}>
             PILIH DIVISI:
           </span>
-          {TEAM_DIVISIONS.map(div => {
+          {dynamicDivisions.map(div => {
             const isSelected = activeDivision === div.id;
             return (
               <button
