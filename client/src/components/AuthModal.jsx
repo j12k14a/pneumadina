@@ -24,7 +24,7 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       username: 'admin',
       email: 'jawsyantampan.admin@pneumadina.com',
       full_name: 'Admin Jawsyan Tampan',
-      avatar: '/team/bph-ketua-umum-bram.png',
+      avatar: '/team/litbang-anggota-jawsyan.png',
       bio: 'Administrator Utama Komunitas Pneumadina',
       password: 'AdminPnewmadina2026!',
       passwords: ['AdminPnewmadina2026!']
@@ -76,6 +76,18 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       bio: 'Anggota Komunitas Pneumadina',
       password: 'ContohMember2026!',
       passwords: ['ContohMember2026!']
+    },
+    {
+      id: 6,
+      role_id: 3,
+      role_name: 'Member',
+      username: 'bram',
+      email: 'bram@pneumadina.com',
+      full_name: 'Bram Ketum',
+      avatar: '/team/bph-ketua-umum-bram.png',
+      bio: 'Ketua Umum Komunitas Pneumadina',
+      password: 'Bramketum2026!',
+      passwords: ['Bramketum2026!']
     }
   ];
 
