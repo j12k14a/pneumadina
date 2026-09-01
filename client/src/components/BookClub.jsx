@@ -148,26 +148,27 @@ export default function BookClub({ onClose }) {
             </div>
             <div style={{ flexGrow: 1, minWidth: '200px' }}>
               <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#111827' }}>
-                TERSEDIA LAPAK BACA & RUANG BEBAS BEREKSPRESI
+                FORMAT RESMI: @JAKARTABOOKPARTY & LAPAK BACA BUKU GRATIS
               </div>
               <div style={{ fontSize: '0.8rem', color: '#1F2937', marginTop: '2px', lineHeight: '1.4' }}>
-                Bawa buku favoritmu atau pinjam dari koleksi lapak baca Pneumadina. Terbuka gratis untuk umum dan mahasiswa!
+                Sesi dibagi menjadi <strong>30 menit membaca hening</strong> dan <strong>30 menit mengulas dalam lingkaran kecil</strong> (maksimal 5 orang). Penanggung Jawab: <strong>Diaz & Tim Redaksi</strong>, berkolaborasi dengan HIMA Paramasophia.
               </div>
             </div>
           </div>
 
           {/* Discussion Topics */}
           <div>
-            <h4 style={{ fontWeight: '800', fontSize: '0.875rem', marginBottom: '8px' }}>Topik Pembahasan Pilihan:</h4>
+            <h4 style={{ fontWeight: '800', fontSize: '0.875rem', marginBottom: '8px' }}>Pilar Diskusi & Kajian Proker:</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {[
-                'Demokrasi & Pluralisme',
-                'Pemikiran Filsafat Nusantara',
-                'Kritik Sastra & Fiksi',
-                'Hak Asasi & Pasifisme',
-                'Studi Kebudayaan & SARA'
+                '📖 Selasar Literasi (Format @JakartaBookParty)',
+                '🤝 MAJEMUK (Dialog Lintas SARA)',
+                '🔬 KKP (Sains Non-Hegemonik)',
+                '📜 Tata Cara Persidangan & Kongres',
+                '🎨 PneuMaGazine (Zine Tridaya)',
+                '🌱 Ekosentrisme & Kosmosentrisme'
               ].map((topic, i) => (
-                <span key={i} className="badge badge-yellow" style={{ fontSize: '0.725rem' }}>
+                <span key={i} className="badge badge-yellow" style={{ fontSize: '0.725rem', padding: '4px 10px' }}>
                   ✓ {topic}
                 </span>
               ))}

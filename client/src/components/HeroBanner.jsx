@@ -78,15 +78,15 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
               boxShadow: '3px 3px 0px 0px #111827'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.775rem', fontWeight: '800' }}>
-                <span style={{ color: '#2563EB' }}>📚</span> 7 Artikel Terbit
+                <span style={{ color: '#2563EB' }}>📚</span> 8 Karya & Artikel
               </div>
               <span style={{ color: '#9CA3AF' }}>•</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.775rem', fontWeight: '800' }}>
-                <span style={{ color: '#2563EB' }}>✍️</span> 3 Author Aktif
+                <span style={{ color: '#2563EB' }}>👥</span> 14 Penggerak
               </div>
               <span style={{ color: '#9CA3AF' }}>•</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.775rem', fontWeight: '800' }}>
-                <span style={{ color: '#2563EB' }}>☕</span> Kamis Book Club
+                <span style={{ color: '#2563EB' }}>☕</span> Lapak Baca & Proker
               </div>
             </div>
           </div>
