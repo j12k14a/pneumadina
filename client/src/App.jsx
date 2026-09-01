@@ -177,6 +177,24 @@ export default function App() {
             });
           }
         }, () => {});
+
+        unsubCategories = onSnapshot(collection(db, 'categories'), (snap) => {
+          if (!snap.empty) {
+            const cList = [];
+            snap.forEach(d => cList.push(d.data()));
+            cList.sort((a, b) => (a.id || 0) - (b.id || 0));
+            setCategories(cList);
+          }
+        }, () => {});
+
+        unsubTags = onSnapshot(collection(db, 'tags'), (snap) => {
+          if (!snap.empty) {
+            const tgList = [];
+            snap.forEach(d => tgList.push(d.data()));
+            tgList.sort((a, b) => (a.id || 0) - (b.id || 0));
+            setTags(tgList);
+          }
+        }, () => {});
       } catch (e) {
         console.warn('Firestore realtime listeners notice:', e);
       }
@@ -187,6 +205,8 @@ export default function App() {
       unsubTeam();
       unsubPosts();
       unsubLikes();
+      unsubCategories();
+      unsubTags();
     };
   }, []);
 

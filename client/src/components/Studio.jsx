@@ -33,51 +33,65 @@ export default function Studio({ onClose, categories, tags, currentUser, onPostC
 
   const handleAddNewCategory = async () => {
     if (!newCategoryName.trim()) return;
+    const catName = newCategoryName.trim();
+    const newCat = {
+      id: Date.now(),
+      name: catName,
+      slug: catName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'categories', String(newCat.id)), newCat);
+      } catch (e) {}
+    }
+
+    if (!localCategories.some(c => c.name.toLowerCase() === catName.toLowerCase())) {
+      setLocalCategories([...localCategories, newCat]);
+    }
+    setSelectedCategory(newCat.id);
+    setNewCategoryName('');
+    if (onCategoryCreated) onCategoryCreated();
+
     try {
-      const res = await fetch('/api/categories', {
+      fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategoryName })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const addedCat = data.data;
-        if (!localCategories.some(c => c.id === addedCat.id)) {
-          setLocalCategories([...localCategories, addedCat]);
-        }
-        setSelectedCategory(addedCat.id);
-        setNewCategoryName('');
-        if (onCategoryCreated) onCategoryCreated();
-      } else {
-        setErrorMsg(data.message || 'Gagal membuat kategori baru');
-      }
-    } catch (err) {
-      console.error('Error adding category:', err);
-    }
+        body: JSON.stringify({ name: catName })
+      }).catch(() => {});
+    } catch (e) {}
   };
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) return;
+    const tagName = newTagName.trim();
+    const newTag = {
+      id: Date.now(),
+      name: tagName,
+      slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'tags', String(newTag.id)), newTag);
+      } catch (e) {}
+    }
+
+    if (!localTags.some(t => t.name.toLowerCase() === tagName.toLowerCase())) {
+      setLocalTags([...localTags, newTag]);
+    }
+    if (!selectedTags.includes(newTag.id)) {
+      setSelectedTags([...selectedTags, newTag.id]);
+    }
+    setNewTagName('');
+
     try {
-      const res = await fetch('/api/tags', {
+      fetch('/api/tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newTagName })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const addedTag = data.data;
-        if (!localTags.some(t => t.id === addedTag.id)) {
-          setLocalTags([...localTags, addedTag]);
-        }
-        if (!selectedTags.includes(addedTag.id)) {
-          setSelectedTags([...selectedTags, addedTag.id]);
-        }
-        setNewTagName('');
-      }
-    } catch (err) {
-      console.error('Error adding tag:', err);
-    }
+        body: JSON.stringify({ name: tagName })
+      }).catch(() => {});
+    } catch (e) {}
   };
 
   const handleSubmit = async (e) => {
