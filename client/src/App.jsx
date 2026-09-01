@@ -636,10 +636,30 @@ export default function App() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             
             <div>
-              <div style={{ marginBottom: '0.75rem', filter: 'brightness(0) invert(1)' }}>
-                <PneumadinaLogo size={38} showText={false} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.85rem' }}>
+                <img
+                  src="/logo.png"
+                  alt="Logo Resmi Pneumadina"
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '10px',
+                    border: '2px solid #FFFFFF',
+                    boxShadow: '3px 3px 0px 0px #FFD600',
+                    objectFit: 'cover',
+                    backgroundColor: '#FFD600',
+                    flexShrink: 0
+                  }}
+                />
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: '#FFD600', margin: 0, lineHeight: 1.1 }}>
+                    Pneumadina
+                  </h3>
+                  <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    Komunitas & Publikasi
+                  </span>
+                </div>
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#FFD600' }}>Pneumadina</h3>
               <p style={{ fontSize: '0.825rem', color: '#9CA3AF', marginTop: '0.4rem', lineHeight: '1.5' }}>
                 Komunitas & Blog Jurnal Bergerak di bidang pluralisme, demokrasi, pasifisme, dan sosial-humaniora. Mengayomi para kawan lintas SARA.
               </p>
