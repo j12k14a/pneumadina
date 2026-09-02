@@ -1,16 +1,61 @@
 import React, { useState } from 'react';
-import { X, Heart, Bookmark, Share2, MessageSquare, Send, Calendar, User, Tag, Check, Sparkles } from 'lucide-react';
+import { X, Heart, Bookmark, Share2, MessageSquare, Send, Calendar, User, Tag, Check, Sparkles, Copy, ExternalLink } from 'lucide-react';
+import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
 
-export default function PostDetailModal({ post, onClose, onLike, onBookmark, isLiked, isBookmarked, currentUser, onAddComment }) {
+export default function PostDetailModal({ 
+  post, 
+  onClose, 
+  onLike, 
+  onBookmark, 
+  isLiked, 
+  isBookmarked, 
+  currentUser, 
+  onAddComment,
+  showToast 
+}) {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [copiedToast, setCopiedToast] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopiedToast(true);
-    setTimeout(() => setCopiedToast(false), 2000);
+  if (!post) return null;
+
+  const articleUrl = getArticleUrl(post);
+  const socialLinks = getSocialShareLinks({
+    title: post.title,
+    url: articleUrl,
+    text: post.content?.substring(0, 140) + '...'
+  });
+
+  const handleShare = async () => {
+    const res = await shareContent({
+      title: post.title,
+      text: `${post.title} — Baca di Blog Komunitas Pneumadina`,
+      url: articleUrl
+    });
+
+    if (res.success) {
+      if (res.method === 'clipboard') {
+        setCopiedToast(true);
+        if (showToast) showToast('🔗 Tautan spesifik artikel berhasil disalin!');
+        setTimeout(() => setCopiedToast(false), 3000);
+      }
+    } else if (!res.aborted) {
+      setShowShareMenu(true);
+    }
+  };
+
+  const handleCopyDirectLink = async (e) => {
+    e?.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(articleUrl);
+      setCopiedToast(true);
+      if (showToast) showToast('🔗 Tautan artikel berhasil disalin ke clipboard!');
+      setTimeout(() => setCopiedToast(false), 3000);
+    } catch (err) {
+      // Fallback
+    }
   };
 
   const handleSendComment = (e) => {
@@ -34,13 +79,13 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(17, 24, 39, 0.85)',
-      backdropFilter: 'blur(5px)',
+      backgroundColor: 'rgba(17, 24, 39, 0.88)',
+      backdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 400,
-      padding: '10px'
+      zIndex: 500,
+      padding: '8px'
     }}>
       <div className="animate-popup-enter" style={{
         backgroundColor: '#FFFFFF',
@@ -48,8 +93,8 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
         maxWidth: '860px',
         maxHeight: '94vh',
         borderRadius: '20px',
-        border: '3px solid #111827',
-        boxShadow: '6px 6px 0px 0px #111827',
+        border: '3.5px solid #111827',
+        boxShadow: '8px 8px 0px 0px #111827',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
@@ -57,7 +102,7 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
         
         {/* Modal Header */}
         <div style={{
-          padding: 'clamp(1rem, 4vw, 1.5rem)',
+          padding: 'clamp(0.85rem, 3.5vw, 1.35rem)',
           backgroundColor: '#FFD600',
           borderBottom: '3px solid #111827',
           display: 'flex',
@@ -74,11 +119,11 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
               ))}
             </div>
 
-            <h2 className="font-serif" style={{ fontSize: 'clamp(1.3rem, 5vw, 1.8rem)', fontWeight: '900', color: '#111827', lineHeight: 1.15 }}>
+            <h2 className="font-serif" style={{ fontSize: 'clamp(1.2rem, 4.5vw, 1.75rem)', fontWeight: '900', color: '#111827', lineHeight: 1.15 }}>
               {post.title}
             </h2>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px', fontSize: '0.775rem', color: '#111827', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', fontSize: '0.75rem', color: '#111827', flexWrap: 'wrap' }}>
               <span style={{ fontWeight: '800' }}>✍️ Penulis: {post.author_name}</span>
               <span>•</span>
               <span>📅 {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
@@ -107,7 +152,7 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
         </div>
 
         {/* Modal Scrollable Article Body */}
-        <div style={{ padding: 'clamp(1rem, 4vw, 1.75rem)', overflowY: 'auto', flexGrow: 1 }}>
+        <div style={{ padding: 'clamp(0.85rem, 3.5vw, 1.5rem)', overflowY: 'auto', flexGrow: 1 }}>
           
           {/* Cover Photo / Thumbnail */}
           {post.thumbnail && (
@@ -115,8 +160,9 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
               marginBottom: '1.25rem',
               borderRadius: '14px',
               overflow: 'hidden',
-              border: '2px solid #111827',
-              maxHeight: '320px'
+              border: '2.5px solid #111827',
+              maxHeight: '320px',
+              backgroundColor: '#111827'
             }}>
               <img 
                 src={post.thumbnail} 
@@ -127,10 +173,47 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
             </div>
           )}
 
+          {/* Canonical Direct Link Banner */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#FAF8F5',
+            border: '2px dashed #111827',
+            borderRadius: '10px',
+            padding: '8px 12px',
+            marginBottom: '1.25rem',
+            fontSize: '0.75rem',
+            gap: '8px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4B5563', overflow: 'hidden' }}>
+              <span style={{ fontWeight: '900', color: '#111827' }}>🔗 LINK ARTIKEL:</span>
+              <span style={{ fontFamily: 'monospace', color: '#2563EB', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                {articleUrl}
+              </span>
+            </div>
+
+            <button
+              onClick={handleCopyDirectLink}
+              className="btn btn-outline"
+              style={{
+                padding: '3px 10px',
+                fontSize: '0.7rem',
+                backgroundColor: copiedToast ? '#059669' : '#FFFFFF',
+                color: copiedToast ? '#FFFFFF' : '#111827',
+                border: '1.5px solid #111827'
+              }}
+            >
+              {copiedToast ? <Check size={12} /> : <Copy size={12} />}
+              {copiedToast ? 'Tersalin!' : 'Salin Tautan'}
+            </button>
+          </div>
+
           {/* Article Text Content */}
           <div style={{
             fontSize: 'clamp(0.9rem, 2.5vw, 1.05rem)',
-            lineHeight: '1.7',
+            lineHeight: '1.75',
             color: '#1F2937',
             whiteSpace: 'pre-line',
             marginBottom: '1.5rem'
@@ -164,13 +247,13 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
             justifyContent: 'space-between',
             padding: '12px',
             backgroundColor: '#FFFDF5',
-            border: '2px solid #111827',
-            borderRadius: '12px',
-            marginBottom: '2rem',
+            border: '2.5px solid #111827',
+            borderRadius: '14px',
+            marginBottom: '1.5rem',
             flexWrap: 'wrap',
             gap: '10px'
           }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button 
                 onClick={() => onLike(post.id)}
                 className={`btn ${isLiked ? 'btn-yellow' : 'btn-outline'}`}
@@ -190,17 +273,105 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
               </button>
             </div>
 
-            <button 
-              onClick={handleShare}
-              className="btn btn-outline"
-              style={{ padding: '6px 14px', fontSize: '0.825rem' }}
-            >
-              <Share2 size={16} /> {copiedToast ? 'Tautan Disalin!' : 'Bagikan'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                onClick={handleShare}
+                className="btn btn-yellow"
+                style={{ padding: '6px 16px', fontSize: '0.825rem' }}
+              >
+                <Share2 size={16} /> {copiedToast ? 'Tautan Disalin!' : 'Bagikan Artikel'}
+              </button>
+
+              <button
+                onClick={() => setShowShareMenu(!showShareMenu)}
+                className="btn btn-outline"
+                style={{ padding: '6px 10px', fontSize: '0.825rem' }}
+                title="Pilihan Sosial Media"
+              >
+                •••
+              </button>
+            </div>
           </div>
 
+          {/* Expanded Social Share Channels */}
+          {showShareMenu && (
+            <div className="animate-card-pop" style={{
+              backgroundColor: '#FFFFFF',
+              border: '2px solid #111827',
+              borderRadius: '12px',
+              padding: '12px',
+              marginBottom: '1.5rem',
+              boxShadow: '4px 4px 0px 0px #111827'
+            }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827', marginBottom: '8px' }}>
+                BAGIKAN KE SOSIAL MEDIA:
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{
+                    backgroundColor: '#25D366',
+                    color: '#FFFFFF',
+                    border: '1.5px solid #111827',
+                    padding: '5px 12px',
+                    fontSize: '0.75rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  💬 WhatsApp
+                </a>
+
+                <a
+                  href={socialLinks.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{
+                    backgroundColor: '#000000',
+                    color: '#FFFFFF',
+                    border: '1.5px solid #111827',
+                    padding: '5px 12px',
+                    fontSize: '0.75rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  𝕏 Twitter / X
+                </a>
+
+                <a
+                  href={socialLinks.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{
+                    backgroundColor: '#229ED9',
+                    color: '#FFFFFF',
+                    border: '1.5px solid #111827',
+                    padding: '5px 12px',
+                    fontSize: '0.75rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  ✈️ Telegram
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleCopyDirectLink}
+                  className="btn btn-outline"
+                  style={{ padding: '5px 12px', fontSize: '0.75rem' }}
+                >
+                  <Copy size={13} /> {copiedToast ? 'Tersalin!' : 'Salin URL'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Comments Section */}
-          <div style={{ borderTop: '2px solid #E5E7EB', paddingTop: '1.5rem' }}>
+          <div style={{ borderTop: '2.5px solid #E5E7EB', paddingTop: '1.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <MessageSquare size={18} color="#2563EB" /> Komentar Kawan ({post.comments?.length || 0})
             </h3>
@@ -217,7 +388,7 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
                   style={{
                     width: '100%',
                     padding: '10px 12px',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     border: '2px solid #111827',
                     fontSize: '0.875rem',
                     marginBottom: '8px',
@@ -230,7 +401,7 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
                 </button>
               </form>
             ) : (
-              <div style={{ padding: '12px', backgroundColor: '#EFF6FF', borderRadius: '8px', border: '1.5px solid #2563EB', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+              <div style={{ padding: '12px', backgroundColor: '#EFF6FF', borderRadius: '10px', border: '1.5px solid #2563EB', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
                 💡 Silakan <strong>masuk ke akun</strong> untuk menulis komentar tanggapan.
               </div>
             )}
@@ -241,32 +412,33 @@ export default function PostDetailModal({ post, onClose, onLike, onBookmark, isL
                 {post.comments.map(c => (
                   <div key={c.id} style={{
                     backgroundColor: '#FAF8F5',
-                    border: '1.5px solid #111827',
-                    borderRadius: '10px',
-                    padding: '12px'
+                    border: '2px solid #111827',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    boxShadow: '2px 2px 0px 0px #111827'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                       <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#111827' }}>
-                        {c.user_name || 'Kawan Pneumadina'}
+                        {c.author_name || c.user_name || 'Kawan Pneumadina'}
                       </div>
-                      <div style={{ fontSize: '0.725rem', color: '#6B7280' }}>
-                        {new Date(c.created_at).toLocaleDateString('id-ID')}
+                      <div style={{ fontSize: '0.7rem', color: '#6B7280' }}>
+                        {new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: '#374151', lineHeight: '1.5' }}>
+                    <p style={{ fontSize: '0.825rem', color: '#374151', lineHeight: '1.45' }}>
                       {c.content}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ fontSize: '0.85rem', color: '#6B7280', italic: 'true' }}>Belum ada komentar. Jadilah kawan pertama yang menanggapi!</p>
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#6B7280', fontSize: '0.85rem' }}>
+                Belum ada komentar. Jadilah yang pertama memberikan refleksi pada karya ini!
+              </div>
             )}
-
           </div>
 
         </div>
-
       </div>
     </div>
   );

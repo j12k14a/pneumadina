@@ -1,8 +1,36 @@
-import React from 'react';
-import { Sparkles, Heart, Bookmark, ArrowRight, Clock, User, Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, Heart, Bookmark, ArrowRight, Clock, User, Eye, Share2, Check } from 'lucide-react';
+import { getArticleUrl, shareContent } from '../utils/urlHelper';
 
-export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmark, isLiked, isBookmarked }) {
+export default function FeaturedPostCard({ 
+  post, 
+  onSelectPost, 
+  onLike, 
+  onBookmark, 
+  isLiked, 
+  isBookmarked,
+  showToast 
+}) {
+  const [copied, setCopied] = useState(false);
   if (!post) return null;
+
+  const handleQuickShare = async (e) => {
+    e.stopPropagation();
+    const articleUrl = getArticleUrl(post);
+    const res = await shareContent({
+      title: post.title,
+      text: `${post.title} — Baca di Blog Komunitas Pneumadina`,
+      url: articleUrl
+    });
+
+    if (res.success) {
+      if (res.method === 'clipboard') {
+        setCopied(true);
+        if (showToast) showToast('🔗 Tautan artikel utama berhasil disalin!');
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
+  };
 
   return (
     <div 
@@ -64,7 +92,7 @@ export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmar
 
       {/* Featured Content Details */}
       <div style={{
-        padding: 'clamp(1.5rem, 4vw, 2.5rem)',
+        padding: 'clamp(1.25rem, 3.5vw, 2.25rem)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -103,7 +131,7 @@ export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmar
 
           {/* Title */}
           <h2 className="font-serif" style={{
-            fontSize: 'clamp(1.4rem, 4vw, 2.1rem)',
+            fontSize: 'clamp(1.3rem, 3.5vw, 2rem)',
             fontWeight: '900',
             color: '#111827',
             lineHeight: '1.2',
@@ -115,7 +143,7 @@ export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmar
 
           {/* Excerpt */}
           <p style={{
-            fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
+            fontSize: 'clamp(0.875rem, 2vw, 1rem)',
             color: '#374151',
             lineHeight: '1.65',
             marginBottom: '1.5rem',
@@ -136,9 +164,9 @@ export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmar
           paddingTop: '1rem',
           borderTop: '2px solid #E5E7EB',
           flexWrap: 'wrap',
-          gap: '12px'
+          gap: '10px'
         }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button 
               type="button"
               onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
@@ -158,12 +186,22 @@ export default function FeaturedPostCard({ post, onSelectPost, onLike, onBookmar
               <Bookmark size={15} fill={isBookmarked ? '#111827' : 'none'} />
               {isBookmarked ? 'Saved' : 'Save'}
             </button>
+
+            <button 
+              type="button"
+              title="Bagikan Tautan Artikel Utama"
+              onClick={handleQuickShare}
+              className={`btn ${copied ? 'btn-yellow' : 'btn-outline'}`}
+              style={{ padding: '6px 12px', fontSize: '0.825rem' }}
+            >
+              {copied ? <Check size={15} /> : <Share2 size={15} />}
+            </button>
           </div>
 
           <button 
             type="button"
             className="btn btn-dark"
-            style={{ padding: '8px 16px', fontSize: '0.875rem' }}
+            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
           >
             Baca Gagasan Selengkapnya <ArrowRight size={16} />
           </button>

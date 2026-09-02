@@ -1,8 +1,37 @@
-import React from 'react';
-import { Heart, Bookmark, Eye, Clock, MessageSquare, ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, Bookmark, Eye, Clock, MessageSquare, ArrowUpRight, Share2, Check } from 'lucide-react';
+import { getArticleUrl, shareContent } from '../utils/urlHelper';
 
-export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLiked, isBookmarked, currentUser }) {
+export default function PostCard({ 
+  post, 
+  onSelectPost, 
+  onLike, 
+  onBookmark, 
+  isLiked, 
+  isBookmarked, 
+  currentUser,
+  showToast 
+}) {
+  const [copied, setCopied] = useState(false);
   const readTimeMinutes = Math.max(2, Math.ceil((post.content?.length || 500) / 400));
+
+  const handleQuickShare = async (e) => {
+    e.stopPropagation();
+    const articleUrl = getArticleUrl(post);
+    const res = await shareContent({
+      title: post.title,
+      text: `${post.title} — Baca di Blog Komunitas Pneumadina`,
+      url: articleUrl
+    });
+
+    if (res.success) {
+      if (res.method === 'clipboard') {
+        setCopied(true);
+        if (showToast) showToast('🔗 Tautan artikel berhasil disalin!');
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
+  };
 
   return (
     <article
@@ -35,7 +64,7 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
         <div style={{
           position: 'relative',
           width: '100%',
-          height: '200px',
+          height: '190px',
           overflow: 'hidden',
           backgroundColor: '#111827',
           borderBottom: '3px solid #111827'
@@ -49,8 +78,6 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
               objectFit: 'cover',
               transition: 'transform 0.4s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.06)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=800&q=80';
             }}
@@ -59,8 +86,8 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
           {/* Floating Category Pills over Cover */}
           <div style={{
             position: 'absolute',
-            top: '12px',
-            left: '12px',
+            top: '10px',
+            left: '10px',
             display: 'flex',
             gap: '6px',
             flexWrap: 'wrap',
@@ -75,31 +102,31 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
 
           <div style={{
             position: 'absolute',
-            bottom: '12px',
-            right: '12px',
+            bottom: '10px',
+            right: '10px',
             backgroundColor: '#111827',
             color: '#FFD600',
             fontSize: '0.7rem',
             fontWeight: '800',
-            padding: '3px 8px',
+            padding: '2px 7px',
             borderRadius: '6px',
             border: '1px solid #FFD600',
             display: 'flex',
             alignItems: 'center',
             gap: '4px'
           }}>
-            <Clock size={12} /> {readTimeMinutes} mnt baca
+            <Clock size={12} /> {readTimeMinutes} mnt
           </div>
         </div>
 
         {/* Card Main Body */}
-        <div style={{ padding: '1.25rem' }}>
+        <div style={{ padding: '1.15rem' }}>
           
           {/* Author Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <div style={{
-              width: '32px',
-              height: '32px',
+              width: '30px',
+              height: '30px',
               borderRadius: '50%',
               backgroundColor: '#FFD600',
               border: '1.5px solid #111827',
@@ -107,17 +134,17 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '900',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               color: '#111827',
               boxShadow: '1.5px 1.5px 0px 0px #111827'
             }}>
               {post.author_name?.charAt(0) || 'D'}
             </div>
             <div>
-              <div style={{ fontSize: '0.825rem', fontWeight: '900', color: '#111827' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827' }}>
                 {post.author_name}
               </div>
-              <div style={{ fontSize: '0.7rem', color: '#6B7280' }}>
+              <div style={{ fontSize: '0.675rem', color: '#6B7280' }}>
                 {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
             </div>
@@ -125,7 +152,7 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
 
           {/* Title */}
           <h3 className="font-serif" style={{
-            fontSize: '1.2rem',
+            fontSize: '1.15rem',
             fontWeight: '900',
             color: '#111827',
             lineHeight: '1.3',
@@ -140,10 +167,10 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
 
           {/* Excerpt */}
           <p style={{
-            fontSize: '0.85rem',
+            fontSize: '0.825rem',
             color: '#4B5563',
-            lineHeight: '1.55',
-            marginBottom: '12px',
+            lineHeight: '1.5',
+            marginBottom: '10px',
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
@@ -154,12 +181,12 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
               {post.tags.slice(0, 3).map(t => (
                 <span key={t.id} style={{
-                  fontSize: '0.675rem',
+                  fontSize: '0.65rem',
                   fontWeight: '800',
-                  padding: '2px 8px',
+                  padding: '2px 7px',
                   backgroundColor: '#FAF8F5',
                   color: '#2563EB',
                   border: '1px solid #2563EB',
@@ -177,7 +204,7 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
 
       {/* Card Actions Footer Bar */}
       <div style={{
-        padding: '10px 1.25rem',
+        padding: '8px 1.15rem',
         backgroundColor: '#FAF8F5',
         borderTop: '2px solid #111827',
         display: 'flex',
@@ -187,26 +214,38 @@ export default function PostCard({ post, onSelectPost, onLike, onBookmark, isLik
         <div style={{ display: 'flex', gap: '6px' }}>
           <button
             type="button"
+            title="Suka Artikel"
             onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
             className={`btn ${isLiked ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '4px 10px', fontSize: '0.775rem' }}
+            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
           >
-            <Heart size={14} fill={isLiked ? '#DC2626' : 'none'} color={isLiked ? '#DC2626' : '#111827'} />
+            <Heart size={13} fill={isLiked ? '#DC2626' : 'none'} color={isLiked ? '#DC2626' : '#111827'} />
             {post.likes_count || 0}
           </button>
 
           <button
             type="button"
+            title="Simpan Bookmark"
             onClick={(e) => { e.stopPropagation(); onBookmark(post.id); }}
             className={`btn ${isBookmarked ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '4px 10px', fontSize: '0.775rem' }}
+            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
           >
-            <Bookmark size={14} fill={isBookmarked ? '#111827' : 'none'} />
+            <Bookmark size={13} fill={isBookmarked ? '#111827' : 'none'} />
+          </button>
+
+          <button
+            type="button"
+            title="Bagikan Tautan Artikel"
+            onClick={handleQuickShare}
+            className={`btn ${copied ? 'btn-yellow' : 'btn-outline'}`}
+            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+          >
+            {copied ? <Check size={13} /> : <Share2 size={13} />}
           </button>
         </div>
 
-        <div style={{ fontSize: '0.8rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px' }}>
-          Baca <ArrowUpRight size={16} />
+        <div style={{ fontSize: '0.775rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px' }}>
+          Baca <ArrowUpRight size={15} />
         </div>
       </div>
 

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
 import KabinetCarousel from './components/KabinetCarousel';
 import VisiMisiSection from './components/VisiMisiSection';
 import PostCard from './components/PostCard';
+import FeaturedPostCard from './components/FeaturedPostCard';
 import PostDetailModal from './components/PostDetailModal';
 import TerimaPublikasi from './components/TerimaPublikasi';
 import BookClub from './components/BookClub';
@@ -12,13 +13,21 @@ import AuthModal from './components/AuthModal';
 import RoleDashboardModal from './components/RoleDashboardModal';
 import EditProfileModal from './components/EditProfileModal';
 import DonationModal from './components/DonationModal';
-import TeamSection from './components/TeamSection';
+import TeamSection, { TEAM_MEMBERS } from './components/TeamSection';
 import PneumadinaLogo from './components/PneumadinaLogo';
 import { Filter, Layers, Flame, ArrowUpDown, Send, CheckCircle2, Globe, Heart } from 'lucide-react';
 import { SEED_DATA } from './data/seedData';
 import { db, doc, onSnapshot, setDoc, increment, collection, getDoc } from './firebase';
+import { 
+  slugify, 
+  getArticleUrl, 
+  getTeamUrl, 
+  parseCurrentRoute, 
+  getBaseUrl 
+} from './utils/urlHelper';
 
 const API_BASE = '/api';
+const DEFAULT_TITLE = 'Pneumadina — Komunitas & Publikasi Mahasiswa';
 
 export default function App() {
   const [posts, setPosts] = useState(() => {
@@ -66,8 +75,9 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('beranda');
 
-  // Modals State
+  // Modals & Deep-Linked States
   const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [showTerimaPublikasi, setShowTerimaPublikasi] = useState(false);
   const [showBookClub, setShowBookClub] = useState(false);
   const [showStudio, setShowStudio] = useState(false);
@@ -92,31 +102,171 @@ export default function App() {
   });
   const [bookmarkedIds, setBookmarkedIds] = useState([1, 3]);
 
-  // Dynamic Team Members State (Default dari SEED_DATA)
+  // Dynamic Team Members State (Default dari SEED_DATA / TEAM_MEMBERS)
   const [teamMembers, setTeamMembers] = useState(() => {
     try {
       const saved = localStorage.getItem('pneumadina_team_members');
-      return saved ? JSON.parse(saved) : (SEED_DATA.team || []);
+      return saved ? JSON.parse(saved) : (SEED_DATA.team || TEAM_MEMBERS);
     } catch {
-      return SEED_DATA.team || [];
+      return SEED_DATA.team || TEAM_MEMBERS;
     }
   });
+
+  const initialRouteResolved = useRef(false);
 
   const showToast = (message) => {
     setToastMsg(message);
     setTimeout(() => setToastMsg(''), 3000);
   };
 
+  // -------------------------------------------------------------
+  // DEEP-LINKING ROUTING & BIDIRECTIONAL URL MANAGEMENT
+  // -------------------------------------------------------------
+
+  const handleSelectPost = (post, pushToHistory = true) => {
+    if (!post) return;
+    setSelectedPost(post);
+    document.title = `${post.title} — Pneumadina`;
+
+    if (pushToHistory) {
+      const articleUrl = `/artikel/${post.slug || slugify(post.title) || post.id}`;
+      try {
+        window.history.pushState({ type: 'article', id: post.id, slug: post.slug }, '', articleUrl);
+      } catch (e) {}
+    }
+  };
+
+  const handleClosePost = (pushToHistory = true) => {
+    setSelectedPost(null);
+    document.title = DEFAULT_TITLE;
+
+    if (pushToHistory) {
+      try {
+        window.history.pushState({ type: 'home' }, '', '/');
+      } catch (e) {}
+    }
+  };
+
+  const handleSelectTeamMember = (member, pushToHistory = true) => {
+    if (!member) return;
+    setSelectedTeamMember(member);
+    document.title = `${member.name} (${member.role}) — Tim Pneumadina`;
+
+    if (pushToHistory) {
+      const teamUrl = `/tim/${member.id || slugify(member.name)}`;
+      try {
+        window.history.pushState({ type: 'team', id: member.id }, '', teamUrl);
+      } catch (e) {}
+    }
+  };
+
+  const handleCloseTeamMember = (pushToHistory = true) => {
+    setSelectedTeamMember(null);
+    document.title = DEFAULT_TITLE;
+
+    if (pushToHistory) {
+      try {
+        window.history.pushState({ type: 'home' }, '', '/');
+      } catch (e) {}
+    }
+  };
+
+  // Process incoming Route
+  const applyRoute = (route, currentPosts = posts, currentTeam = teamMembers) => {
+    if (!route) return;
+
+    if (route.type === 'article' && route.slugOrId) {
+      const target = decodeURIComponent(route.slugOrId).toLowerCase();
+      const match = currentPosts.find(p => 
+        String(p.id) === target || 
+        (p.slug && p.slug.toLowerCase() === target) ||
+        (p.title && slugify(p.title) === target) ||
+        (p.title && p.title.toLowerCase().includes(target))
+      );
+
+      if (match) {
+        setSelectedPost(match);
+        document.title = `${match.title} — Pneumadina`;
+      }
+    } else if (route.type === 'team' && route.memberId) {
+      const target = decodeURIComponent(route.memberId).toLowerCase();
+      const allMembers = (currentTeam && currentTeam.length > 0) ? currentTeam : TEAM_MEMBERS;
+      const match = allMembers.find(m => 
+        (m.id && m.id.toLowerCase() === target) ||
+        (m.member_id && String(m.member_id).toLowerCase() === target) ||
+        (m.name && slugify(m.name) === target) ||
+        (m.name && m.name.toLowerCase().includes(target))
+      );
+
+      if (match) {
+        setSelectedTeamMember(match);
+        document.title = `${match.name} (${match.role}) — Tim Pneumadina`;
+        setTimeout(() => {
+          const el = document.getElementById('divisi-section');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
+    } else if (route.type === 'section' && route.sectionId) {
+      setTimeout(() => {
+        const el = document.getElementById(route.sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else if (route.type === 'modal') {
+      if (route.modal === 'terimaPublikasi') setShowTerimaPublikasi(true);
+      if (route.modal === 'bookClub') setShowBookClub(true);
+      if (route.modal === 'donasi') setShowDonationModal(true);
+      if (route.modal === 'studio') setShowStudio(true);
+    } else if (route.type === 'home') {
+      setSelectedPost(null);
+      setSelectedTeamMember(null);
+      document.title = DEFAULT_TITLE;
+    }
+  };
+
+  // Initial Route Detection on Mount & popstate Event Listener
+  useEffect(() => {
+    const route = parseCurrentRoute();
+    applyRoute(route, posts, teamMembers);
+    initialRouteResolved.current = true;
+
+    const handlePopState = () => {
+      const currentRoute = parseCurrentRoute();
+      applyRoute(currentRoute, posts, teamMembers);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Sync route once posts/team members load if not resolved initially
+  useEffect(() => {
+    if (posts.length > 0 || teamMembers.length > 0) {
+      const route = parseCurrentRoute();
+      if (route.type === 'article' && !selectedPost) {
+        applyRoute(route, posts, teamMembers);
+      } else if (route.type === 'team' && !selectedTeamMember) {
+        applyRoute(route, posts, teamMembers);
+      }
+    }
+  }, [posts, teamMembers]);
+
+  // -------------------------------------------------------------
+  // FIRESTORE LISTENERS & API FETCHING
+  // -------------------------------------------------------------
+
   useEffect(() => {
     fetchPosts();
     fetchCategories();
     fetchTags();
     fetchUsers();
-    // 1. Realtime Firestore Listener untuk Seluruh Pengguna (Users)
+
+    // Variable declarations for realtime listeners (fixed reference error)
     let unsubUsers = () => {};
     let unsubTeam = () => {};
     let unsubPosts = () => {};
     let unsubLikes = () => {};
+    let unsubCategories = () => {};
+    let unsubTags = () => {};
 
     if (db) {
       try {
@@ -128,7 +278,6 @@ export default function App() {
             setUsers(uList);
             try { localStorage.setItem('pneumadina_users', JSON.stringify(uList)); } catch (e) {}
 
-            // Sinkronkan data currentUser jika sedang login
             setCurrentUser(prevUser => {
               if (!prevUser) return null;
               const match = uList.find(u => u.id === prevUser.id || (u.email && u.email.toLowerCase() === prevUser.email?.toLowerCase()));
@@ -232,9 +381,7 @@ export default function App() {
           localStorage.setItem('pneumadina_team_members', JSON.stringify(data.data));
         }
       }
-    } catch (err) {
-      // Backend offline di Firebase, gunakan SEED_DATA
-    }
+    } catch (err) {}
   };
 
   const fetchPosts = async () => {
@@ -247,9 +394,7 @@ export default function App() {
           localStorage.setItem('pneumadina_posts', JSON.stringify(data.data));
         }
       }
-    } catch (err) {
-      // Backend offline di Firebase, gunakan SEED_DATA
-    }
+    } catch (err) {}
   };
 
   const fetchCategories = async () => {
@@ -339,19 +484,17 @@ export default function App() {
 
     showToast(isCurrentlyLiked ? 'Like dibatalkan' : '❤️ Terima kasih! Artikel disukai');
 
-    // 1. Realtime Sync ke Cloud Firestore (Aktif otomatis saat Firestore dibuat)
+    // Realtime Sync ke Cloud Firestore
     if (db) {
       try {
         const statsRef = doc(db, 'stats', 'likes_counts');
         await setDoc(statsRef, {
           [postId]: increment(delta)
         }, { merge: true });
-      } catch (err) {
-        // Fallback aman jika database belum dibuat di console
-      }
+      } catch (err) {}
     }
 
-    // 2. Sync ke backend lokal jika tersedia
+    // Sync ke backend lokal jika ada
     try {
       let guestId = localStorage.getItem('pneumadina_guest_id');
       if (!guestId) {
@@ -368,9 +511,7 @@ export default function App() {
           guest_id: currentUser ? null : guestId
         })
       });
-    } catch (err) {
-      // Backend offline
-    }
+    } catch (err) {}
   };
 
   const handleBookmark = async (postId) => {
@@ -395,9 +536,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ post_id: postId, user_id: currentUser.id })
       });
-    } catch (err) {
-      console.error('Bookmark sync error:', err);
-    }
+    } catch (err) {}
   };
 
   const handleAddComment = async (postId, content, parentId = null) => {
@@ -414,7 +553,6 @@ export default function App() {
       created_at: new Date().toISOString()
     };
 
-    // 1. Update state & localStorage
     setPosts(prev => {
       const updated = prev.map(p => {
         if (p.id === postId) {
@@ -439,7 +577,6 @@ export default function App() {
       } : null);
     }
 
-    // 2. Simpan ke Cloud Firestore
     if (db) {
       try {
         const postRef = doc(db, 'posts', String(postId));
@@ -450,12 +587,9 @@ export default function App() {
           comments.push(newComment);
           await setDoc(postRef, { comments }, { merge: true });
         }
-      } catch (err) {
-        console.warn('Firestore comment notice:', err);
-      }
+      } catch (err) {}
     }
 
-    // 3. Simpan ke backend lokal jika tersedia
     try {
       fetch(`${API_BASE}/comments`, {
         method: 'POST',
@@ -472,8 +606,6 @@ export default function App() {
 
     showToast('💬 Komentar Anda berhasil dipublikasikan!');
   };
-
-
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -519,6 +651,10 @@ export default function App() {
     return new Date(b.created_at) - new Date(a.created_at);
   });
 
+  // Featured Post (First post or special editor's pick)
+  const featuredPost = sortedPosts.length > 0 ? sortedPosts[0] : null;
+  const regularPosts = sortedPosts.length > 1 ? sortedPosts.slice(1) : [];
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#FAF8F5' }}>
       
@@ -536,13 +672,13 @@ export default function App() {
           boxShadow: '4px 4px 0px 0px #111827',
           fontWeight: '800',
           fontSize: '0.85rem',
-          zIndex: 500
+          zIndex: 700
         }}>
           {toastMsg}
         </div>
       )}
 
-      {/* Navbar (Restored with all action buttons & Open Donation) */}
+      {/* Navbar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -634,7 +770,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Category Filters Bar (4 Primary Categorized Channels: Fiksi, Non-Fiksi, Desain, Fotografi) */}
+        {/* Category Filters Bar */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -687,7 +823,7 @@ export default function App() {
 
         </div>
 
-        {/* SORTING BAR (Figma Specification: Directly Under Categories) */}
+        {/* SORTING BAR (Figma Specification) */}
         <div style={{
           backgroundColor: '#FFD600',
           border: '2.5px solid #111827',
@@ -740,6 +876,19 @@ export default function App() {
           </div>
         </div>
 
+        {/* Featured Article Card (When no active search/tag filter) */}
+        {!searchQuery && !selectedTag && selectedCategory === 'all' && featuredPost && (
+          <FeaturedPostCard 
+            post={featuredPost}
+            onSelectPost={(p) => handleSelectPost(p)}
+            onLike={handleLike}
+            onBookmark={handleBookmark}
+            isLiked={likedIds.includes(featuredPost.id)}
+            isBookmarked={bookmarkedIds.includes(featuredPost.id)}
+            showToast={showToast}
+          />
+        )}
+
         {/* Posts Grid - Responsive Multi-Column Layout */}
         {sortedPosts.length === 0 ? (
           <div style={{
@@ -763,20 +912,22 @@ export default function App() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '1.5rem'
           }}>
-            {sortedPosts.map((post, idx) => (
+            {/* Show all if filtered, or show rest if featured exists */}
+            {(searchQuery || selectedTag || selectedCategory !== 'all' ? sortedPosts : regularPosts).map((post, idx) => (
               <div 
                 key={post.id} 
                 className="animate-card-pop"
-                style={{ animationDelay: `${idx * 0.05}s` }}
+                style={{ animationDelay: `${idx * 0.04}s` }}
               >
                 <PostCard
                   post={post}
-                  onSelectPost={(p) => setSelectedPost(p)}
+                  onSelectPost={(p) => handleSelectPost(p)}
                   onLike={handleLike}
                   onBookmark={handleBookmark}
                   isLiked={likedIds.includes(post.id)}
                   isBookmarked={bookmarkedIds.includes(post.id)}
                   currentUser={currentUser}
+                  showToast={showToast}
                 />
               </div>
             ))}
@@ -784,7 +935,14 @@ export default function App() {
         )}
 
         {/* Struktur Divisi & Tim Pengurus Komunitas Pneumadina */}
-        <TeamSection teamMembers={teamMembers} onRefreshTeam={fetchTeam} />
+        <TeamSection 
+          teamMembers={teamMembers} 
+          onRefreshTeam={fetchTeam}
+          selectedMember={selectedTeamMember}
+          onSelectMember={(m) => handleSelectTeamMember(m)}
+          onClosePreview={() => handleCloseTeamMember()}
+          showToast={showToast}
+        />
 
       </main>
 
@@ -798,7 +956,7 @@ export default function App() {
       }}>
         <div className="container">
           
-          {/* Newsletter Box (Updated to Langganan Gratis) */}
+          {/* Newsletter Box */}
           <div style={{
             backgroundColor: '#FFD600',
             color: '#111827',
@@ -993,7 +1151,7 @@ export default function App() {
             fontSize: '0.775rem',
             color: '#9CA3AF'
           }}>
-            &copy; 2026 Pneumadina Community Blog. Fullstack Application (pneumadina.is-a.dev).
+            &copy; 2026 Pneumadina Community Blog. Fullstack Application (pneumadina.web.app).
           </div>
         </div>
       </footer>
@@ -1009,13 +1167,14 @@ export default function App() {
       {selectedPost && (
         <PostDetailModal
           post={selectedPost}
-          onClose={() => setSelectedPost(null)}
+          onClose={() => handleClosePost()}
           onLike={handleLike}
           onBookmark={handleBookmark}
           isLiked={likedIds.includes(selectedPost.id)}
           isBookmarked={bookmarkedIds.includes(selectedPost.id)}
           currentUser={currentUser}
           onAddComment={handleAddComment}
+          showToast={showToast}
         />
       )}
 
@@ -1058,7 +1217,7 @@ export default function App() {
           onRefreshData={() => { fetchPosts(); fetchUsers(); fetchTeam(); }}
           onOpenStudio={() => setShowStudio(true)}
           onOpenTerimaPublikasi={() => setShowTerimaPublikasi(true)}
-          onSelectPost={(p) => { setShowRoleDashboard(false); setSelectedPost(p); }}
+          onSelectPost={(p) => { setShowRoleDashboard(false); handleSelectPost(p); }}
           onLike={handleLike}
           onBookmark={handleBookmark}
           likedIds={likedIds}

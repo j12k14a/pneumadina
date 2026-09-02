@@ -167,7 +167,7 @@ body {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -232,6 +232,12 @@ body {
     gap: 1.25rem !important;
   }
 
+  /* Team Grid 2-Column on Tablets and Mobiles */
+  .team-grid-2col {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
   /* Modal Dialog Mobile Fixes */
   .animate-popup-enter {
     max-width: 100% !important;
@@ -247,6 +253,21 @@ body {
   }
   h2 {
     font-size: clamp(1.3rem, 5.5vw, 1.7rem) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .hide-on-very-small {
+    display: none !important;
+  }
+  
+  .team-grid-2col {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .team-card-compact {
+    box-shadow: 3px 3px 0px 0px #111827 !important;
   }
 }
 
