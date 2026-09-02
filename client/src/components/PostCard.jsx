@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Bookmark, Eye, Clock, MessageSquare, ArrowUpRight, Share2, Check } from 'lucide-react';
+import { Heart, Bookmark, Eye, Clock, MessageSquare, ArrowUpRight, Share2, Check, Edit2, Trash2 } from 'lucide-react';
 import { getArticleUrl, shareContent } from '../utils/urlHelper';
 
 export default function PostCard({ 
@@ -10,10 +10,20 @@ export default function PostCard({
   isLiked, 
   isBookmarked, 
   currentUser,
-  showToast 
+  showToast,
+  onEdit,
+  onDelete
 }) {
   const [copied, setCopied] = useState(false);
   const readTimeMinutes = Math.max(2, Math.ceil((post.content?.length || 500) / 400));
+
+  const isPostAuthorOrAdmin = currentUser && (
+    currentUser.role_id === 1 ||
+    currentUser.id === post.user_id ||
+    (currentUser.username && post.author_username && currentUser.username.toLowerCase() === post.author_username.toLowerCase()) ||
+    (currentUser.full_name && post.author_name && currentUser.full_name.toLowerCase() === post.author_name.toLowerCase()) ||
+    (currentUser.email && post.author_email && currentUser.email.toLowerCase() === post.author_email.toLowerCase())
+  );
 
   const handleQuickShare = async (e) => {
     e.stopPropagation();
@@ -99,6 +109,34 @@ export default function PostCard({
               </span>
             ))}
           </div>
+
+          {/* Author/Admin Edit Quick Badge on Card Top Right */}
+          {isPostAuthorOrAdmin && onEdit && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(post);
+              }}
+              className="btn btn-yellow"
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                padding: '3px 8px',
+                fontSize: '0.7rem',
+                fontWeight: '900',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                zIndex: 3,
+                boxShadow: '2px 2px 0px 0px #111827'
+              }}
+              title="Edit Artikel Ini di Studio"
+            >
+              <Edit2 size={12} /> Edit
+            </button>
+          )}
 
           <div style={{
             position: 'absolute',
@@ -244,8 +282,52 @@ export default function PostCard({
           </button>
         </div>
 
-        <div style={{ fontSize: '0.775rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px' }}>
-          Baca <ArrowUpRight size={15} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {isPostAuthorOrAdmin && onEdit && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(post);
+              }}
+              className="btn btn-yellow"
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.725rem',
+                fontWeight: '800',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+              title="Edit Artikel"
+            >
+              <Edit2 size={12} /> Edit
+            </button>
+          )}
+
+          {isPostAuthorOrAdmin && onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(post.id, post.title);
+              }}
+              className="btn btn-outline"
+              style={{
+                padding: '3px 6px',
+                fontSize: '0.725rem',
+                color: '#DC2626',
+                borderColor: '#DC2626'
+              }}
+              title="Hapus Artikel"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+
+          <div style={{ fontSize: '0.775rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px' }}>
+            Baca <ArrowUpRight size={15} />
+          </div>
         </div>
       </div>
 

@@ -957,6 +957,8 @@ export default function App() {
             isLiked={likedIds.includes(featuredPost.id)}
             isBookmarked={bookmarkedIds.includes(featuredPost.id)}
             showToast={showToast}
+            currentUser={currentUser}
+            onEdit={handleOpenEditPost}
           />
         )}
 
@@ -999,6 +1001,7 @@ export default function App() {
                   isBookmarked={bookmarkedIds.includes(post.id)}
                   currentUser={currentUser}
                   showToast={showToast}
+                  onEdit={handleOpenEditPost}
                 />
               </div>
             ))}

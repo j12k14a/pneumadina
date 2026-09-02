@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Heart, Bookmark, ArrowRight, Clock, User, Eye, Share2, Check } from 'lucide-react';
+import { Sparkles, Heart, Bookmark, ArrowRight, Clock, User, Eye, Share2, Check, Edit2 } from 'lucide-react';
 import { getArticleUrl, shareContent } from '../utils/urlHelper';
 
 export default function FeaturedPostCard({ 
@@ -9,7 +9,9 @@ export default function FeaturedPostCard({
   onBookmark, 
   isLiked, 
   isBookmarked,
-  showToast 
+  showToast,
+  currentUser,
+  onEdit
 }) {
   const [copied, setCopied] = useState(false);
   if (!post) return null;
@@ -198,13 +200,36 @@ export default function FeaturedPostCard({
             </button>
           </div>
 
-          <button 
-            type="button"
-            className="btn btn-dark"
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-          >
-            Baca Gagasan Selengkapnya <ArrowRight size={16} />
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {currentUser && (
+              currentUser.role_id === 1 ||
+              currentUser.id === post.user_id ||
+              (currentUser.username && post.author_username && currentUser.username.toLowerCase() === post.author_username.toLowerCase()) ||
+              (currentUser.full_name && post.author_name && currentUser.full_name.toLowerCase() === post.author_name.toLowerCase()) ||
+              (currentUser.email && post.author_email && currentUser.email.toLowerCase() === post.author_email.toLowerCase())
+            ) && onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(post);
+                }}
+                className="btn btn-yellow"
+                style={{ padding: '6px 12px', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                title="Edit Artikel Utama"
+              >
+                <Edit2 size={14} /> Edit
+              </button>
+            )}
+
+            <button 
+              type="button"
+              className="btn btn-dark"
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            >
+              Baca Gagasan Selengkapnya <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
 
       </div>

@@ -360,9 +360,9 @@ export default function RoleDashboardModal({
     setLoadingAction(false);
   };
 
-  // Admin Delete Post Handler
-  const handleDeletePost = async (postId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus artikel ini?')) return;
+  // Delete Post Handler (Admin & Author)
+  const handleDeletePost = async (postId, postTitle = '') => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus artikel "${postTitle || 'ini'}"? Tindakan ini tidak dapat dibatalkan.`)) return;
     if (db) {
       try {
         await deleteDoc(doc(db, 'posts', String(postId)));
@@ -371,12 +371,21 @@ export default function RoleDashboardModal({
       }
     }
     try {
+      const saved = localStorage.getItem('pneumadina_posts');
+      if (saved) {
+        const list = JSON.parse(saved);
+        const filtered = list.filter(p => p.id !== postId);
+        localStorage.setItem('pneumadina_posts', JSON.stringify(filtered));
+      }
+    } catch (e) {}
+    try {
       fetch(`/api/posts/${postId}`, { method: 'DELETE' }).catch(() => {});
     } catch (err) {}
 
     setMsg('Artikel berhasil dihapus!');
     if (onRefreshData) onRefreshData();
-    setTimeout(() => setMsg(''), 2000);
+    if (onDeletePost) onDeletePost(postId);
+    setTimeout(() => setMsg(''), 2500);
   };
 
   const isRoleAdmin = currentUser?.role_id === 1;
@@ -1152,17 +1161,22 @@ export default function RoleDashboardModal({
                         isLiked={likedIds.includes(post.id)}
                         isBookmarked={bookmarkedIds.includes(post.id)}
                         currentUser={currentUser}
+                        onEdit={(p) => {
+                          onClose();
+                          if (onEditPost) onEditPost(p);
+                        }}
+                        onDelete={(id, title) => handleDeletePost(id, title)}
                       />
                       {/* Author Management Action Bar */}
                       <div style={{
-                        marginTop: '-12px',
+                        marginTop: '-10px',
                         marginBottom: '8px',
                         display: 'flex',
-                        gap: '6px',
-                        backgroundColor: '#FFFFFF',
-                        border: '2px solid #111827',
-                        borderRadius: '0 0 12px 12px',
-                        padding: '8px 10px',
+                        gap: '8px',
+                        backgroundColor: '#FFFDF5',
+                        border: '2.5px solid #111827',
+                        borderRadius: '0 0 16px 16px',
+                        padding: '10px 12px',
                         boxShadow: '3px 3px 0px 0px #111827'
                       }}>
                         <button
@@ -1173,22 +1187,24 @@ export default function RoleDashboardModal({
                           className="btn btn-yellow"
                           style={{
                             flex: 1,
-                            padding: '6px 8px',
-                            fontSize: '0.75rem',
+                            padding: '8px 12px',
+                            fontSize: '0.8rem',
+                            fontWeight: '900',
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '4px'
+                            gap: '6px'
                           }}
                         >
-                          <Edit2 size={13} /> Edit Artikel
+                          <Edit2 size={15} /> Edit Artikel
                         </button>
                         <button
                           onClick={() => handleDeletePost(post.id, post.title)}
                           className="btn btn-outline"
                           style={{
-                            padding: '6px 10px',
-                            fontSize: '0.75rem',
+                            padding: '8px 14px',
+                            fontSize: '0.8rem',
+                            fontWeight: '800',
                             color: '#DC2626',
                             borderColor: '#DC2626',
                             display: 'inline-flex',
@@ -1198,7 +1214,7 @@ export default function RoleDashboardModal({
                           }}
                           title="Hapus Artikel"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={15} /> Hapus
                         </button>
                       </div>
                     </div>
