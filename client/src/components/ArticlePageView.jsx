@@ -22,6 +22,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
+import ArticleContentRenderer from './ArticleContentRenderer';
 
 export default function ArticlePageView({
   post,
@@ -545,7 +546,7 @@ export default function ArticlePageView({
           padding: 'clamp(1.5rem, 4.5vw, 3rem)',
           marginBottom: '2.5rem'
         }}>
-          {renderMarkdownContent(post.content)}
+          <ArticleContentRenderer content={post.content} fontSize={fontSize} theme={readingTheme} />
 
           {/* Tags Footer */}
           {post.tags && post.tags.length > 0 && (

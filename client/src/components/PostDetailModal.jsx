@@ -17,6 +17,7 @@ import {
   FileText
 } from 'lucide-react';
 import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
+import ArticleContentRenderer from './ArticleContentRenderer';
 
 export default function PostDetailModal({ 
   post, 
@@ -367,16 +368,9 @@ export default function PostDetailModal({
             </div>
           )}
 
-          {/* Article Text Content */}
-          <div style={{
-            fontSize: '0.95rem',
-            lineHeight: '1.8',
-            color: '#1F2937',
-            marginBottom: '1.5rem',
-            whiteSpace: 'pre-line',
-            textAlign: 'justify'
-          }}>
-            {post.content}
+          {/* Article Text Content (Rich Typography & Structured References) */}
+          <div style={{ marginBottom: '2rem' }}>
+            <ArticleContentRenderer content={post.content} fontSize={16} theme="light" />
           </div>
 
           {/* Tags */}

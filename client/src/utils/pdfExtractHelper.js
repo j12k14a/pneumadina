@@ -128,7 +128,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
   const abstractIdx = normalizedText.toLowerCase().indexOf('abstract');
   if (abstractIdx > 0) {
     const headerBlock = normalizedText.substring(0, abstractIdx).trim();
-    // Split by author indicators or take first substantial phrase
     const titleCandidates = headerBlock.split(/by\s+|author:|department|university|shafa|diandra|jawsyan/i);
     if (titleCandidates[0] && titleCandidates[0].trim().length > 10) {
       title = titleCandidates[0].trim();
@@ -136,7 +135,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
   }
 
   if (!title && firstLines.length > 0) {
-    // Combine first 1-3 lines if they look like a title
     title = firstLines.slice(0, 2).join(' ');
   }
 
@@ -144,7 +142,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
     title = fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
   }
 
-  // Clean title punctuation
   title = title.replace(/^#+\s*/, '').trim();
 
   // 3. Detect Author & Affiliation
@@ -192,7 +189,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
   const detectedTags = new Set(keywords);
   const textLower = normalizedText.toLowerCase();
 
-  // Academic / Domain Tag Dictionary
   const tagKeywords = [
     { tag: 'NatunaSea', check: 'natuna' },
     { tag: 'MaritimeSecurity', check: 'maritime' },
@@ -218,15 +214,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
   // 6. Format Content into Beautiful Structured Academic Markdown
   let formattedContent = normalizedText;
 
-  // Header Box
-  let headerMarkdown = '';
-  if (authorName) {
-    headerMarkdown += `**Penulis:** ${authorName}  \n`;
-    if (authorAffiliation) headerMarkdown += `**Afiliasi:** ${authorAffiliation}  \n`;
-    if (authorEmail) headerMarkdown += `**Kontak:** \`${authorEmail}\`  \n`;
-    headerMarkdown += `\n---\n\n`;
-  }
-
   // Format Abstract Box
   if (abstractText) {
     const kwText = Array.from(detectedTags).slice(0, 6).map(t => `#${t}`).join(' ');
@@ -248,7 +235,6 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
     'DISCUSSION',
     'CONCLUSION',
     'CONCLUSION AND POLICY RECOMMENDATIONS',
-    'RECOMMENDATIONS',
     'POLICY RECOMMENDATIONS',
     'REFERENCES',
     'BIBLIOGRAPHY'
@@ -270,7 +256,7 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
     'Data Analysis Techniques',
     'Maritime Security Threats',
     'Institutional Coordination',
-    'Policy Implication'
+    'Strategic Policy Recommendations'
   ];
 
   for (const sub of subSections) {
@@ -278,13 +264,48 @@ export function analyzeAndFormatPdfArticle(pdfResult, fileName = '') {
     formattedContent = formattedContent.replace(reg, '\n\n### $1\n\n');
   }
 
-  // Format paragraphs nicely (break on full stops followed by capital letters when line is long)
-  formattedContent = formattedContent
-    .replace(/([.!?])\s+([A-Z][a-z]+)/g, '$1\n\n$2')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  // Clean Paragraphs (sentences grouping)
+  const sentences = formattedContent.split(/(?<=[.!?])\s+(?=[A-Z0-9])/).map(s => s.trim()).filter(s => s.length > 0);
+  const cleanParagraphs = [];
+  let tempP = [];
 
-  const finalMarkdown = (headerMarkdown + formattedContent).trim();
+  for (const s of sentences) {
+    if (s.startsWith('#')) {
+      if (tempP.length > 0) {
+        cleanParagraphs.push(tempP.join(' '));
+        tempP = [];
+      }
+      cleanParagraphs.push(s);
+    } else {
+      tempP.push(s);
+      if (tempP.length >= 3 || tempP.join(' ').length > 350) {
+        cleanParagraphs.push(tempP.join(' '));
+        tempP = [];
+      }
+    }
+  }
+  if (tempP.length > 0) {
+    cleanParagraphs.push(tempP.join(' '));
+  }
+
+  let finalMarkdown = cleanParagraphs.join('\n\n').trim();
+
+  // Format References into numbered list
+  const refIndex = finalMarkdown.search(/##\s+(?:References|Bibliography)/i);
+  if (refIndex !== -1) {
+    const bodyPart = finalMarkdown.substring(0, refIndex);
+    const refPart = finalMarkdown.substring(refIndex);
+    const refMatch = refPart.match(/##\s+(?:References|Bibliography)\s+([\s\S]+)/i);
+    if (refMatch && refMatch[1]) {
+      const rawRefs = refMatch[1].split(/(?=[A-Z][a-zA-Z\s.,&-]+?\(\d{4}[a-z]?\))/);
+      const cleanRefList = rawRefs.map(r => r.trim()).filter(r => r.length > 15);
+      let numberedRefText = '\n\n## References\n\n';
+      cleanRefList.forEach((r, idx) => {
+        numberedRefText += `${idx + 1}. ${r}\n\n`;
+      });
+      finalMarkdown = bodyPart.trim() + numberedRefText;
+    }
+  }
 
   // 7. Estimate Read Time & Word Count
   const wordCount = words.length;
