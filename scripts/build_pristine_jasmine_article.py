@@ -1,0 +1,275 @@
+import json
+import os
+
+article_title = "Strengthening Sovereignty in the North Natuna Sea: An Evaluation of Indonesia's Maritime Security and Deterrence Strategy"
+article_slug = "strengthening-sovereignty-in-the-north-natuna-sea-an-evaluation-of-indonesias-maritime-security-and-deterrence-strategy"
+
+article_content = """### Abstract
+
+> This study aims to analyze the dynamics of maritime security threats and evaluate the effectiveness of Indonesia's deterrence strategy in the North Natuna Sea against China's grey-zone tactics and transnational maritime crimes. Using a descriptive qualitative approach based on library research, secondary data were gathered from official government reports, the UNCLOS 1982 legal framework, and academic literature. The findings reveal that Indonesia's sovereignty and sovereign rights in the North Natuna Exclusive Economic Zone (EEZ) are continually challenged by coercive actions from the China Coast Guard (CCG) and the proliferation of dark vessels. These external vulnerabilities are exacerbated by domestic structural issues, including jurisdictional fragmentation among seven ministries/agencies lacking a single command system, patrol logistics inefficiencies, and an offshore physical presence vacuum due to the dominance of small-scale local fishing vessels under 5 Gross Tons (GT). Although Indonesia has demonstrated operational deterrence by intercepting and expelling foreign vessels, its long-term strategic deterrence remains compromised. This research recommends comprehensive legal harmonization to establish a unified maritime command under the Indonesian Maritime Security Agency (Bakamla), the modernization of long-range surveillance and patrol assets, and the economic empowerment of local Natuna fishermen through larger-tonnage vessel modernization and guaranteed fuel subsidies.
+
+**Keywords:** `#NorthNatunaSea` `#MaritimeSecurity` `#DeterrenceStrategy` `#UNCLOS1982` `#GreyZoneTactics` `#Bakamla` `#InternationalRelations`
+
+---
+
+## 1. Introduction
+
+### 1.1 Background & Strategic Significance
+
+The North Natuna Sea is a strategic body of water holding vital economic, geopolitical, and security value for Indonesia (CNN Indonesia, 2016; Kemenko Polkam RI, 2023). Under the 1982 United Nations Convention on the Law of the Sea (UNCLOS 1982), Indonesia holds sovereign rights over the exploration and exploitation of natural resources within its Exclusive Economic Zone (EEZ) and continental shelf (United Nations, 1982).
+
+Although Indonesia is not a claimant state in the wider South China Sea territorial disputes, its maritime jurisdiction in the North Natuna Sea faces severe, recurring geopolitical pressures. These pressures stem primarily from the People's Republic of China's (PRC) unilateral and non-binding "Ten-Dash Line" claim, which unlawfully overlaps with approximately 83,000 square kilometers of Indonesia's EEZ (Forum Sinologi Indonesia, 2025; KIARA, 2023).
+
+The strategic significance of the North Natuna Sea is underscored by its colossal natural wealth. The area encompasses the Natuna D-Alpha gas field—one of the largest natural gas reserves in Asia—with estimated total gas reserves of 222 trillion cubic feet (Tcf) and recoverable hydrocarbon potential exceeding 46 Tcf (Bloomberg Technoz, 2025; Kementerian ESDM, 2010). Furthermore, the Fisheries Management Area of the Republic of Indonesia (WPPNRI) 711 in the Natuna Sea boasts a sustainable fisheries potential reaching 769,200 tons per year (Dinas Perikanan Kabupaten Natuna, 2021).
+
+However, these vital resources are systematically undermined by complex maritime security threats. China actively deploys China Coast Guard (CCG) vessels and maritime militia fleets to enforce its unilateral jurisdictional claims under the threshold of war—a classic execution of grey-zone coercion (Asia Maritime Transparency Initiative, 2023; Fanani et al., 2026). At the same time, the region is inundated by Illegal, Unreported, and Unregulated (IUU) fishing conducted by foreign fishing vessels operating as "dark vessels" with deliberately deactivated Automatic Identification Systems (AIS), alongside transnational crimes such as illicit ship-to-ship crude oil transfers (Calista et al., 2026; Mahabror & Hidayat, 2018).
+
+### 1.2 Problem Formulation
+
+To comprehensively evaluate Indonesia's posture and policy responses in this contested maritime theater, this study addresses three fundamental research questions:
+
+1. How do grey-zone tactics, dark vessel incursions, and transnational crimes manifest as dynamic security threats in the North Natuna Sea?
+2. How effective is Indonesia's current deterrence strategy across operational law enforcement and institutional frameworks?
+3. What strategic policy reforms are required to overcome structural and logistical bottlenecks in safeguarding Indonesia's maritime sovereignty?
+
+### 1.3 Research Objectives
+
+This study aims to:
+- Evaluate the evolving dynamics and manifestations of maritime threats in the North Natuna Sea.
+- Critically assess the operational and structural effectiveness of Indonesia's maritime deterrence strategy.
+- Formulate an integrated strategic policy roadmap covering institutional legal harmonization, fleet modernization, and civilian maritime empowerment.
+
+### 1.4 Significance of the Study
+
+This research provides theoretical and empirical contributions to the study of maritime security and international relations in Southeast Asia. On a policy level, the findings offer actionable insights for national defense planners, the Indonesian Navy (TNI AL), Bakamla, and the Ministry of Marine Affairs and Fisheries (KKP) to build a credible, resilient deterrence posture in the North Natuna Sea.
+
+---
+
+## 2. Literature Review & Theoretical Framework
+
+### 2.1 The Concept of Maritime Security
+
+Maritime security is a multidimensional concept that extends far beyond traditional naval defense. In contemporary maritime security studies, it encompasses four interconnected pillars:
+- **National Defense & Sovereignty:** Protecting territorial integrity and sovereign rights against state-sponsored external aggression and coercion.
+- **Law Enforcement & Good Order at Sea:** Combating transnational maritime crimes, including piracy, armed robbery, drug trafficking, and illegal ship-to-ship transfers.
+- **Economic Security:** Preserving sovereign exploration and exploitation rights over living and non-living marine resources, preventing IUU fishing and economic leakage.
+- **Marine Environmental Protection:** Preventing environmental degradation, marine pollution, and habitat destruction caused by destructive fishing and unregulated vessel discharges.
+
+### 2.2 Deterrence Theory and Grey-Zone Coercion
+
+Deterrence theory posits that an actor can prevent an adversary from taking an undesirable action by convincing them that the costs and risks of the action will substantially outweigh any potential gains. Deterrence operates primarily through two mechanisms:
+- **Deterrence by Denial:** Persuading the adversary that their objective cannot be achieved because the defender possesses the operational capability and presence to physically block, intercept, and neutralize any hostile incursions.
+- **Deterrence by Punishment:** Threatening severe retaliation—military, economic, or diplomatic—if the adversary crosses established sovereign thresholds.
+
+In the North Natuna Sea, China utilizes **Grey-Zone Tactics**—coercive actions that fall between peaceful diplomacy and open military conflict. By deploying coast guard cutters, survey ships, and maritime militia rather than gray-hulled warships, China attempts to establish *de facto* administrative control and resource dominance while deliberately denying Indonesia a clear *casus belli* for military escalation (Asia Maritime Transparency Initiative, 2023; Fanani et al., 2026). Consequently, Indonesia must rely heavily on **Deterrence by Denial** executed through continuous law enforcement presence and civilian economic utilization.
+
+---
+
+## 3. Research Methodology
+
+### 3.1 Research Design
+
+This study adopts a descriptive qualitative research design based on comprehensive library research. The qualitative framework is designed to evaluate complex strategic phenomena, institutional dynamics, and policy effectiveness in maritime governance.
+
+### 3.2 Data Sources
+
+Secondary data were systematically gathered from three primary clusters:
+
+• **International Legal Documents and Policy Frameworks:**
+UNCLOS 1982 legal frameworks (United Nations, 1982), the 2016 Permanent Court of Arbitration (PCA) ruling, China's 2021 Coast Guard Law, and Indonesian national maritime legislation (Badan Pembinaan Hukum Nasional, 2005; Chairijah, 2005).
+
+• **Operational Data and Institutional Reports:**
+Official performance reports of the Indonesian Maritime Security Agency (Badan Keamanan Laut Republik Indonesia, 2024, 2025, 2026), vessel transit logs from the Ministry of Marine Affairs and Fisheries (Direktorat Jenderal PSDKP, 2025a, 2025b), crisis incident reports from the Indonesian Navy Information Center (Pusat Penerangan TNI, 2024; TNI Angkatan Laut, 2024), and AIS traffic logs from Bakamla's Natuna Station.
+
+• **Academic Literature and Verified Media Records:**
+Peer-reviewed journal articles (Calista et al., 2026; Fanani et al., 2026; Rohana, 2021), strategic analyses from leading think tanks such as the Asia Maritime Transparency Initiative / CSIS (Asia Maritime Transparency Initiative, 2023), and verified investigative media reports (BBC News Indonesia, 2020; CNBC Indonesia, 2020; Kompas.com, 2021; Tempo, 2024).
+
+### 3.3 Data Analysis Techniques
+
+Data analysis followed the interactive model proposed by Miles, Huberman, and Saldana, consisting of data condensation, data display through structured matrices, and conclusion drawing/verification through source triangulation.
+
+---
+
+## 4. Results and Discussion
+
+### 4.1 Dynamics of Maritime Security Threats in the North Natuna Sea
+
+Indonesia's sovereign rights in the North Natuna Sea face a trifecta of escalating threats: state-sponsored grey-zone incursions, massive dark vessel IUU fishing, and sophisticated transnational crimes.
+
+The harassment of PT Pertamina East Natuna's seismic survey vessel **MV Geo Coral** from October 19 to 24, 2024, exemplifies China's grey-zone modus operandi (Damarjati, 2024; Tempo, 2024). While the vessel was conducting a 3D Arwana seismic survey within Indonesia's continental shelf, CCG 5402 actively intercepted, shadowed, and disrupted operations, demanding that Indonesian commercial vessels halt activity in waters claimed under the Ten-Dash Line.
+
+Simultaneously, IUU fishing remains a chronic drain on national wealth. Data indicates that during peak seasons, foreign fishing vessels—predominantly from Vietnam and China—routinely deactivate AIS transponders to create operational blind spots, averaging hundreds of illegal vessel transits per day (CNN Indonesia, 2020; Ditjen PSDKP, 2025a, 2025b). Moreover, transnational syndicates exploit these jurisdictional gaps for high-risk crimes, such as the illicit ship-to-ship transfer of millions of barrels of crude oil by the Iranian-flagged supertanker **MT Arman 114** in 2023 (Calista et al., 2026).
+
+### Table 1: Matrix of Maritime Threats and Implications in the North Natuna Sea
+
+| Threat Parameter | Manifestation in the North Natuna Sea | Implications for Indonesia |
+| :--- | :--- | :--- |
+| **Grey-Zone Intrusions** | CCG 5402 and maritime militia deployment harassing offshore oil and gas exploration (e.g., MV Geo Coral, Oct 2024) *(Damarjati, 2024; Tempo, 2024)*. | Directly challenges sovereign rights over exclusive resources and threatens national energy security *(Kompas.com, 2021)*. |
+| **Dark Vessels & IUU Fishing** | 1,533 foreign vessels deactivated AIS in April 2019; averaging 315 illegal vessel transits/day in Oct 2024 *(CNN Indonesia, 2020, 2024b)*. | Massive fiscal losses, marine ecosystem degradation, and erosion of economic sovereignty *(Mahabror & Hidayat, 2018; Ruang Kota, 2025)*. |
+| **Transnational Crime** | Illicit ship-to-ship crude oil transfers by Iranian-flagged tanker MT Arman 114 in 2023 *(Calista et al., 2026)*. | Vulnerability of the Indonesian EEZ as a safe haven for international criminal syndicates *(Calista et al., 2026)*. |
+
+### 4.2 Evaluation of Indonesia's Deterrence Strategy
+
+Indonesia has demonstrated commendable tactical resolve at the operational level. Between 2020 and 2026, joint operations involving Bakamla (KN Tanjung Datu 301, KN Pulau Dana 323), the Indonesian Navy (KRI Diponegoro 365, KRI Usman Harun 359), and KKP patrol vessels (Hiu 11) successfully shadowed, intercepted, and expelled foreign coast guard cutters and confiscated multiple illegal foreign trawlers (Ditjen PSDKP, 2025a; Pusat Penerangan TNI, 2024; Tempo, 2024).
+
+However, at the strategic level, Indonesia's deterrence by denial posture suffers from three severe structural vulnerabilities:
+
+1. **Institutional Fragmentation:** Maritime law enforcement is currently fragmented across seven different ministries and agencies (TNI AL, Bakamla, Polairud, KKP PSDKP, Directorate General of Sea Transportation, Directorate General of Customs and Excise, and the Ministry of Environment and Forestry). The absence of a unified maritime command leads to overlapping mandates, jurisdictional rivalries, and suboptimal command-and-control during grey-zone crises (Rohana, 2021).
+2. **Logistical and Budgetary Constraints ("Docking Strategy"):** Patrol assets face severe fuel limitations and high operational costs. Data shows that in several fiscal periods, operational patrol ships were forced to spend a significant portion of their deployment docked at base ("docking strategy") rather than conducting active open-sea patrols (Bakamla RI, 2024, 2025).
+3. **Civilian Presence Vacuum in the Outer EEZ:** Local fishing fleets serve as indispensable "living sensors" and civilian symbols of sovereign presence. However, of the 5,000+ fishing boats registered in Natuna Regency, approximately 98% are artisanal craft under 5 Gross Tons (GT) (Dinas Perikanan Kabupaten Natuna, 2024; Satu Data Natuna, 2026). These micro-scale boats cannot operate safely in the rough waters of the outer EEZ (100–200 nautical miles offshore), creating an acoustic and physical vacuum that foreign fleets eagerly exploit.
+
+---
+
+## 5. Strategic Policy Recommendations
+
+To construct an impregnable maritime security architecture in the North Natuna Sea, this study outlines a comprehensive three-pronged reform roadmap:
+
+### 5.1 Comprehensive Legal Harmonization & Single Maritime Command
+
+Indonesia must accelerate the enactment of an Omnibus Maritime Security Law that designates Bakamla as the sole, unified Indonesian Coast Guard with full investigatory and interdiction authority. Replicating the successful model of the United States Coast Guard (USCG) or Japan Coast Guard (JCG) will eliminate inter-agency friction and provide a streamlined civilian command capable of countering foreign coast guard incursions without provoking military escalation.
+
+### 5.2 Modernization of Long-Range Surveillance & Patrol Infrastructure
+
+Bakamla and TNI AL must be equipped with modern long-endurance patrol vessels (>110 meters) capable of sustaining extended operations in Sea State 6 conditions. Furthermore, physical patrols must be integrated with a state-of-the-art Coastal Surveillance System (CSS) incorporating Over-The-Horizon (OTH) radar, Maritime Patrol Aircraft (MPA), and long-endurance Medium-Altitude Long-Endurance (MALE) UAVs to eliminate radar blind spots and track dark vessels in real-time.
+
+### 5.3 Economic Empowerment of Local Fishermen as "Living Sensors"
+
+Civilian maritime presence is the strongest baseline of national sovereignty. The central government should implement a targeted capital expenditure program to upgrade Natuna's artisanal fleet to modern 30–100 GT fishing vessels equipped with cold storage, satellite Automatic Identification Systems (AIS), and emergency maritime transponders. In tandem, the government must guarantee subsidized marine fuel (BBM Solar) distribution in Natuna to lower operational overheads, empowering Indonesian fishermen to sustainably harvest and guard the outer limits of the North Natuna EEZ (BPH Migas, 2026; Serayu Nusantara, 2026).
+
+---
+
+## 6. Conclusion
+
+The North Natuna Sea represents both Indonesia's greatest maritime asset and its most pressing sovereign challenge. While Indonesian maritime forces have repeatedly proven their operational courage by intercepting and expelling foreign coercive vessels, enduring strategic security cannot be achieved through reactive, ad-hoc measures alone.
+
+Safeguarding Indonesia's maritime sovereignty demands an integrated strategy that harmonizes legal command structures, modernizes naval and coast guard assets, and vigorously empowers local fishing communities as front-line civilian sentinels. By executing these strategic imperatives, Indonesia will cement a robust deterrence-by-denial posture, upholding its sovereign rights and ensuring good order in the North Natuna Sea in full accordance with UNCLOS 1982.
+
+---
+
+## References
+
+1. Agnew, D. J., & Barnes, C. T. (2004). Economic aspects and drivers of IUU fishing: Building a framework. In *Fish piracy: Combating illegal, unreported and unregulated fishing* (pp. 169–200). OECD Publishing.
+2. Asia Maritime Transparency Initiative. (2023, March 8). *(Almost) everyone is drilling inside the nine-dash line*. Center for Strategic and International Studies. <https://amti.csis.org/>
+3. Asnawi, A. (2026, June 8). *Jalan panjang memerangi penangkapan ikan ilegal*. Mongabay Indonesia.
+4. Badan Keamanan Laut Republik Indonesia. (2024). *Laporan kinerja Bakamla RI tahun 2023*. Bakamla RI.
+5. Badan Keamanan Laut Republik Indonesia. (2025). *Laporan kinerja Bakamla RI tahun 2024*. Bakamla RI.
+6. Badan Keamanan Laut Republik Indonesia. (2026). *Laporan kinerja Bakamla RI tahun 2025*. Bakamla RI.
+7. Badan Pembinaan Hukum Nasional. (2005). *Laporan akhir penelitian tentang aspek hukum pemanfaatan zona ekonomi eksklusif dalam rangka peningkatan pendapatan nelayan Indonesia*. Departemen Hukum dan Hak Asasi Manusia RI.
+8. BBC News Indonesia. (2020, January 28). *Kisah nelayan-nelayan Natuna: "Gali lubang tutup lubang" meski hidup di surga ikan*. BBC News Indonesia. <https://www.bbc.com/indonesia>
+9. Bloomberg Technoz. (2025, December 4). *Profil Natuna D-Alpha: Aset gas menantang, dilirik Kufpec & Shell*. Bloomberg Technoz.
+10. BPH Migas. (2026, July 16). *Kelancaran distribusi BBM di Natuna terus dijaga*. BPH Migas.
+11. Calista, G. N., 'Ain, I. N., & Pale, M. A. (2026). Penegakan hukum maritim di wilayah perbatasan: Studi kasus MT Arman 114 dan ancaman kedaulatan di Laut Natuna Utara. *Jurnal Ilmiah Multidisipliner (JIM)*, 10(5), 277–287.
+12. Chairijah. (2005). *Laporan akhir penelitian tentang aspek hukum pemanfaatan zona ekonomi eksklusif dalam rangka peningkatan pendapatan nelayan Indonesia*. Badan Pembinaan Hukum Nasional.
+13. CNBC Indonesia. (2020, January 3). *Tegas! Kapal perang RI usir coast guard China di Laut Natuna*. CNBC Indonesia.
+14. CNN Indonesia. (2016, June 23). *Laut Natuna jadi sumber migas Asia*. CNN Indonesia.
+15. CNN Indonesia. (2020, January 5). *Jumlah kapal asing di Natuna tembus seribu per hari*. CNN Indonesia. <https://www.cnnindonesia.com/ekonomi/20200105102943-92-462510/jumlah-kapal-asing-di-natuna-tembus-seribu-per-hari>
+16. CNN Indonesia. (2024a, October 24). *Kapal coast guard China ganggu kapal Pertamina di Laut Natuna Utara*. CNN Indonesia.
+17. CNN Indonesia. (2024b, October 25). *Kapal coast guard China dua kali masuk Laut Natuna Utara pekan ini*. CNN Indonesia. <https://www.cnnindonesia.com/nasional/20241025130609-20-1159510/kapal-coast-guard-china-dua-kali-masuk-laut-natuna-utara-pekan-ini>
+18. Conservation Strategy Fund, & Yayasan Strategi Konservasi. (2018). *Perikanan Natuna dan kesejahteraan nelayan pasca penerapan kebijakan IUU fishing*. Indonesia Marine Fellows Program.
+19. Damarjati, D. (2024, November 22). *Pergerakan kapal China di Laut Natuna, ada pengaruh joint statement RI-RRC?*. DetikNews. <https://news.detik.com/berita/d-7651813/pergerakan-kapal-china-di-laut-natuna-ada-pengaruh-joint-statement-ri-rrc>
+20. Dinas Perikanan Kabupaten Natuna. (2021). *Rencana strategis Dinas Perikanan Kabupaten Natuna tahun 2021–2026*. Pemerintah Kabupaten Natuna.
+21. Dinas Perikanan Kabupaten Natuna. (2024). *Profil perikanan Kabupaten Natuna: Buku saku tahun 2024*. Pemerintah Kabupaten Natuna.
+22. Direktorat Jenderal Pengawasan Sumber Daya Kelautan dan Perikanan. (2025a, April 18). *Tangkap 2 kapal Vietnam, KKP selamatkan kerugian negara Rp152 miliar*. Kementerian Kelautan dan Perikanan Republik Indonesia.
+23. Direktorat Jenderal Pengawasan Sumber Daya Kelautan dan Perikanan. (2025b, November 6). *KKP tangkap kapal ikan asing berbendera Vietnam di Laut Natuna Utara*. Kementerian Kelautan dan Perikanan Republik Indonesia.
+24. Fanani, M. R., Prawesthi, W., Subekti, S., & Nurhandayati, N. (2026). International legal review of the incident of expulsion of Chinese Coast Guard vessels in the North Natuna Sea. *Eduvest – Journal of Universal Studies*, 6(1), 1228–1245.
+25. Forum Sinologi Indonesia. (2025, September 19). *Kehadiran China di Laut Natuna Utara dan peran coast guard*. Forum Sinologi Indonesia.
+26. Ismail, K., Kusasi, F., & Fitriana, R. (2018). *Perikanan Natuna dan kesejahteraan nelayan pasca penerapan kebijakan IUU fishing*. Conservation Strategy Fund.
+27. Kementerian Energi dan Sumber Daya Mineral. (2010, July 15). *Penandatanganan kontrak Natuna D-Alpha ditargetkan tahun ini*. Direktorat Jenderal Minyak dan Gas Bumi ESDM.
+28. Kementerian Kelautan dan Perikanan. (2025, November 6). *KKP tangkap kapal ikan asing berbendera Vietnam di Laut Natuna Utara (Press Release No. SP.449/SJ.5/XI/2025)*. <https://kkp.go.id/news/news-detail/kkp-tangkap-kapal-ikan-asing-berbendera-vietnam-di-laut-natuna-utara-Y72O.htm>
+29. Kementerian Koordinator Bidang Politik, Hukum, dan Keamanan Republik Indonesia. (2023, November 2). *Major project penguatan keamanan laut Natuna mengatasi permasalahan keamanan di Laut Natuna*. Kemenko Polkam RI.
+30. KIARA. (2023, January 25). *Kedaulatan teritorial ZEE Laut Natuna Utara tidak untuk ditawar!*. Koalisi Rakyat untuk Keadilan Perikanan.
+31. Kompas.com. (2021, December 5). *Diklaim milik China, Natuna simpan cadangan gas raksasa*. Kompas.com.
+32. Kumparan. (2024, October 24). *Kapal Coast Guard China masuk lagi ke perairan RI di Natuna, diusir Bakamla*. Kumparan.
+33. Leader Nusantara. (2021, October 6). *Memanfaatkan potensi maritim, Natuna perlu banyak kapal*. Leader Nusantara.
+34. Mahabror, D., & Hidayat, J. J. (2018). Analisis kerugian ekonomi akibat illegal fishing di Zona Ekonomi Eksklusif perairan Natuna. *Prosiding Seminar Nasional Kelautan dan Perikanan IV 2018*, 263–268.
+35. Mongabay Indonesia. (2025, March 2). *Nelayan kecil Natuna di tengah himpitan kapal besar dan asing*. Mongabay Indonesia.
+36. Pemerintah Daerah Kabupaten Natuna. (n.d.). *Kondisi geografis Kabupaten Natuna*. Pemerintah Kabupaten Natuna.
+37. Pemerintah Kabupaten Natuna. (2020, January 31). *Pemerintah akan optimalkan industri perikanan di perairan Natuna*. Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu Kabupaten Natuna.
+38. Pusat Penerangan TNI. (2024, October 22). *Bakamla RI deteksi dan usir kapal China Coast Guard di Laut Natuna Utara*. Tentara Nasional Indonesia. <https://tni.mil.id/view-247688-bakamla-ri-deteksi-dan-usir-kapal-china-coast-guard-di-laut-natuna-utara.html>
+39. Rohana, U. (2021). Interoperabilitas TNI AL dan Bakamla RI dalam melaksanakan kegiatan pengawasan terhadap pelanggaran di wilayah Laut Natuna Utara. *Journal of Industrial Engineering & Management Research*, 3(4), 261–263.
+40. Ruang Kota. (2025, April 30). *Pencurian ikan di Laut Natuna Utara tak hanya merugikan secara ekonomi tapi juga merusak ekosistem laut*. Ruang Kota.
+41. Satu Data Natuna. (2026, March 4). *Jumlah armada tangkap menurut jenis kapal di Kabupaten Natuna tahun 2021–2025*. Diskominfo Natuna.
+42. Serayu Nusantara. (2026, July 15). *Pemerintah siapkan BBM Rp15.000 per liter untuk nelayan kapal 30–200 GT*. Serayu Nusantara.
+43. Tempo. (2024, October 23). *Kronologi Bakamla RI usir kapal Cina di Laut Natuna Utara yang ganggu kegiatan survei*. Tempo.co. <https://www.tempo.co/politik/kronologi-bakamla-ri-usir-kapal-cina-di-laut-natuna-utara-yang-ganggu-kegiatan-survei-1096511>
+44. TNI Angkatan Laut. (2024, October 22). *Bakamla RI deteksi dan usir kapal China Coast Guard di Laut Natuna Utara*. Dinas Penerangan TNI Angkatan Laut.
+45. United Nations. (1982). *United Nations Convention on the Law of the Sea (UNCLOS)*. United Nations Treaty Series, 1833, 3–397.
+46. VOA Indonesia. (2020, January 7). *Pemerintah akan mobilisasi nelayan Pantura ke perairan Natuna*. VOA Indonesia.
+""".strip()
+
+post_obj = {
+    "id": 1788334000000,
+    "user_id": 1788332782537,
+    "title": article_title,
+    "slug": article_slug,
+    "content": article_content,
+    "excerpt": "Evaluasi komprehensif efektivitas strategi deterrence dan penegakan hukum maritim Indonesia di Laut Natuna Utara dalam menghadapi grey-zone tactics dan dark vessels berdasarkan kerangka hukum UNCLOS 1982.",
+    "thumbnail": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80",
+    "status": "published",
+    "published_at": "2026-09-02T14:15:00.000Z",
+    "created_at": "2026-09-02T14:15:00.000Z",
+    "updated_at": None,
+    "author_name": "Shafa Nur Jasmine",
+    "author_username": "jasmine",
+    "author_email": "shafa.jasmine@students.paramadina.ac.id",
+    "author_avatar": "/team/redaksi-anggota-jasmine.png",
+    "author_bio": "Editorial Division of Pneumadina • Dept. of International Relations, Paramadina University",
+    "likes_count": 24,
+    "comments_count": 2,
+    "bookmarks_count": 9,
+    "categories": [
+        {
+            "id": 2,
+            "name": "Non-Fiksi",
+            "slug": "non-fiksi",
+            "description": "Esai, wacana, opini, riset ilmiah, filsafat, dan ulasan kritis"
+        }
+    ],
+    "tags": [
+        {"id": 101, "name": "NatunaSea", "slug": "natunasea"},
+        {"id": 102, "name": "MaritimeSecurity", "slug": "maritimesecurity"},
+        {"id": 103, "name": "Deterrence", "slug": "deterrence"},
+        {"id": 104, "name": "UNCLOS", "slug": "unclos"},
+        {"id": 105, "name": "InternationalRelations", "slug": "internationalrelations"},
+        {"id": 106, "name": "Paramadina", "slug": "paramadina"}
+    ],
+    "comments": [
+        {
+            "id": 1,
+            "user_id": 1,
+            "author_name": "Admin Jawsyan Tampan",
+            "content": "Analisis komprehensif yang sangat tajam mengenai dinamika grey-zone tactics dan kelemahan koordinasi kelembagaan di Laut Natuna Utara. Selamat atas penerbitan paper ilmiah ini, Jasmine!",
+            "created_at": "2026-09-02T14:20:00.000Z"
+        },
+        {
+            "id": 2,
+            "user_id": 2,
+            "author_name": "Diandra Paramadina",
+            "content": "Pendekatan UNCLOS 1982 dan konsep deterrence yang disajikan sangat relevan bagi diskursus kedaulatan maritim Indonesia modern.",
+            "created_at": "2026-09-02T14:25:00.000Z"
+        }
+    ]
+}
+
+# Write to client json
+base_dir = os.path.join(os.path.dirname(__file__), '..', 'client', 'src', 'data')
+with open(os.path.join(base_dir, 'jasmine_post.json'), 'w', encoding='utf-8') as f:
+    json.dump(post_obj, f, ensure_ascii=False, indent=2)
+
+# Update seedData.js
+seed_path = os.path.join(base_dir, 'seedData.js')
+with open(seed_path, 'r', encoding='utf-8') as f:
+    seed_content = f.read()
+
+prefix = 'export const SEED_DATA = '
+idx = seed_content.find(prefix)
+if idx != -1:
+    json_str = seed_content[idx + len(prefix):].rstrip(';\n')
+    data = json.loads(json_str)
+    
+    # Replace jasmine post in posts array
+    data['posts'] = [p for p in data['posts'] if p['id'] != post_obj['id']]
+    data['posts'].insert(0, post_obj)
+    
+    with open(seed_path, 'w', encoding='utf-8') as f:
+        f.write(prefix + json.dumps(data, ensure_ascii=False, indent=2) + ';\n')
+    print('seedData.js and jasmine_post.json updated successfully with pristine publication text!')

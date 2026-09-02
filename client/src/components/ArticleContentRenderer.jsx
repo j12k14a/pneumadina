@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, ExternalLink, Bookmark, Quote, Link2 } from 'lucide-react';
+import { BookOpen, ExternalLink, Bookmark, Quote, Link2, Table, CheckCircle2 } from 'lucide-react';
 
 export default function ArticleContentRenderer({ 
   content, 
@@ -21,7 +21,11 @@ export default function ArticleContentRenderer({
       refBg: '#F9FAFB',
       refBorder: '#E5E7EB',
       link: '#2563EB',
-      codeBg: '#F3F4F6'
+      codeBg: '#F3F4F6',
+      tableHeaderBg: '#111827',
+      tableHeaderText: '#FFD600',
+      tableBorder: '#111827',
+      tableStripe: '#F9FAFB'
     },
     sepia: {
       text: '#433422',
@@ -32,7 +36,11 @@ export default function ArticleContentRenderer({
       refBg: '#EFE3BA',
       refBorder: '#D7C797',
       link: '#92400E',
-      codeBg: '#EFE3BA'
+      codeBg: '#EFE3BA',
+      tableHeaderBg: '#2C1810',
+      tableHeaderText: '#FDE68A',
+      tableBorder: '#2C1810',
+      tableStripe: '#EFE3BA'
     },
     dark: {
       text: '#E2E8F0',
@@ -43,14 +51,18 @@ export default function ArticleContentRenderer({
       refBg: '#1E293B',
       refBorder: '#334155',
       link: '#60A5FA',
-      codeBg: '#334155'
+      codeBg: '#334155',
+      tableHeaderBg: '#0F172A',
+      tableHeaderText: '#FFD600',
+      tableBorder: '#475569',
+      tableStripe: '#1E293B'
     }
   };
 
   const colors = themeColors[theme] || themeColors.light;
 
   // Split into raw blocks (by double newline)
-  const blocks = content.split(/\n\n+/);
+  const rawBlocks = content.split(/\n\n+/);
 
   let inReferences = false;
 
@@ -61,12 +73,39 @@ export default function ArticleContentRenderer({
       color: colors.text,
       transition: 'color 0.2s, font-size 0.15s'
     }}>
-      {blocks.map((block, idx) => {
-        const trimmed = block.trim();
+      {rawBlocks.map((block, idx) => {
+        let trimmed = block.trim();
         if (!trimmed) return null;
 
+        // Skip redundant top headers if they duplicate modal/page title & author
+        if (
+          trimmed.startsWith('# ') &&
+          (trimmed.toLowerCase().includes('strengthening sovereignty') || trimmed.toLowerCase().includes('artikel ilmiah'))
+        ) {
+          return null;
+        }
+        if (
+          trimmed.startsWith('**Author:**') ||
+          trimmed.startsWith('**Affiliation:**') ||
+          trimmed.startsWith('**Division:**') ||
+          trimmed.startsWith('**Email:**') ||
+          trimmed.startsWith('**Penulis:**')
+        ) {
+          return null;
+        }
+
+        // Table Block Detection (Markdown Table `| col1 | col2 |`)
+        if (trimmed.includes('|') && trimmed.includes('\n|')) {
+          return renderTableBlock(trimmed, idx, colors, fontSize, isDark);
+        }
+
         // Check if entering References Section
-        if (trimmed.startsWith('## References') || trimmed.startsWith('## 6. References') || trimmed.startsWith('## DAFTAR PUSTAKA')) {
+        if (
+          trimmed.startsWith('## References') || 
+          trimmed.startsWith('## 6. References') || 
+          trimmed.startsWith('## DAFTAR PUSTAKA') ||
+          trimmed.toLowerCase() === '## references'
+        ) {
           inReferences = true;
           return (
             <div key={idx} style={{ marginTop: '3rem', marginBottom: '1.5rem', borderTop: `2.5px solid ${colors.abstractBorder}`, paddingTop: '1.75rem' }}>
@@ -74,15 +113,15 @@ export default function ArticleContentRenderer({
                 fontSize: 'clamp(1.3rem, 4vw, 1.8rem)',
                 fontWeight: '900',
                 color: colors.heading,
-                marginBottom: '1rem',
+                marginBottom: '0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Link2 size={20} color="#2563EB" /> References & Bibliography
+                <Link2 size={22} color="#2563EB" /> References & Bibliography
               </h2>
               <p style={{ fontSize: '0.85rem', color: isDark ? '#94A3B8' : '#6B7280', marginBottom: '1.25rem' }}>
-                Sumber rujukan, jurnal internasional, dan data primer yang digunakan dalam naskah ini:
+                Sumber rujukan primer, traktat hukum internasional, dan jurnal akademik bereputasi:
               </p>
             </div>
           );
@@ -92,11 +131,11 @@ export default function ArticleContentRenderer({
         if (trimmed.startsWith('# ')) {
           return (
             <h1 key={idx} className="font-serif" style={{
-              fontSize: 'clamp(1.5rem, 5vw, 2.2rem)',
+              fontSize: 'clamp(1.4rem, 4vw, 2rem)',
               fontWeight: '900',
               color: colors.heading,
               lineHeight: '1.25',
-              marginTop: '1.5rem',
+              marginTop: '1.75rem',
               marginBottom: '1rem',
               letterSpacing: '-0.3px'
             }}>
@@ -110,7 +149,7 @@ export default function ArticleContentRenderer({
           inReferences = false;
           return (
             <h2 key={idx} className="font-serif" style={{
-              fontSize: 'clamp(1.25rem, 4vw, 1.7rem)',
+              fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)',
               fontWeight: '900',
               color: colors.heading,
               lineHeight: '1.3',
@@ -128,11 +167,11 @@ export default function ArticleContentRenderer({
         if (trimmed.startsWith('### ')) {
           return (
             <h3 key={idx} style={{
-              fontSize: 'clamp(1.05rem, 3vw, 1.3rem)',
+              fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)',
               fontWeight: '800',
               color: '#2563EB',
               lineHeight: '1.35',
-              marginTop: '1.85rem',
+              marginTop: '1.75rem',
               marginBottom: '0.75rem'
             }}>
               {trimmed.replace(/^###\s+/, '')}
@@ -161,12 +200,12 @@ export default function ArticleContentRenderer({
                 color: colors.heading,
                 marginBottom: '10px'
               }}>
-                <BookOpen size={17} color="#2563EB" />
+                <BookOpen size={18} color="#2563EB" />
                 <span>ABSTRAK & IKHTISAR AKADEMIK</span>
               </div>
               <div style={{
                 fontSize: `${fontSize}px`,
-                lineHeight: '1.8',
+                lineHeight: '1.85',
                 color: colors.text,
                 fontStyle: 'italic',
                 textAlign: 'justify'
@@ -188,7 +227,36 @@ export default function ArticleContentRenderer({
           );
         }
 
-        // If in References section and starts with number e.g. "1. Author..."
+        // Bullet list points (`• ` or `- `)
+        if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const lines = trimmed.split('\n');
+          return (
+            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '1.25rem 0' }}>
+              {lines.map((line, lIdx) => {
+                const lTrim = line.trim().replace(/^[•\-*]\s*/, '');
+                if (!lTrim) return null;
+                return (
+                  <div key={lIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{
+                      color: '#2563EB',
+                      fontWeight: '900',
+                      fontSize: '1.2rem',
+                      lineHeight: '1',
+                      marginTop: '4px'
+                    }}>
+                      •
+                    </span>
+                    <div style={{ flexGrow: 1, textAlign: 'justify', lineHeight: '1.85' }}>
+                      {renderInlineFormatted(lTrim, colors)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
+
+        // If in References section or starts with number
         if (inReferences || /^\d+\.\s+/.test(trimmed)) {
           const lines = trimmed.split('\n');
           return (
@@ -255,21 +323,88 @@ export default function ArticleContentRenderer({
 }
 
 /**
+ * Render Markdown Table into styled HTML Table
+ */
+function renderTableBlock(blockText, key, colors, fontSize, isDark) {
+  const lines = blockText.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l.startsWith('|'));
+  if (lines.length < 2) return null;
+
+  const headerLine = lines[0];
+  const headers = headerLine.split('|').map(h => h.trim()).filter((h, i, arr) => i > 0 && i < arr.length - 1);
+
+  // Rows (skip index 1 if it's separator `|---|---|`)
+  const startIndex = lines[1].includes('---') ? 2 : 1;
+  const rows = lines.slice(startIndex).map(line => {
+    return line.split('|').map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+  });
+
+  return (
+    <div key={key} style={{
+      margin: '2rem 0',
+      overflowX: 'auto',
+      borderRadius: '14px',
+      border: `2px solid ${colors.tableBorder}`,
+      boxShadow: isDark ? 'none' : `4px 4px 0px 0px ${colors.tableBorder}`
+    }}>
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: `${Math.max(12, fontSize - 2)}px`,
+        textAlign: 'left'
+      }}>
+        <thead>
+          <tr style={{ backgroundColor: colors.tableHeaderBg, color: colors.tableHeaderText }}>
+            {headers.map((h, hIdx) => (
+              <th key={hIdx} style={{
+                padding: '12px 16px',
+                fontWeight: '900',
+                borderBottom: `2px solid ${colors.tableBorder}`,
+                letterSpacing: '0.3px',
+                fontSize: '0.85rem'
+              }}>
+                {renderInlineFormatted(h, colors)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rIdx) => (
+            <tr 
+              key={rIdx} 
+              style={{ 
+                backgroundColor: rIdx % 2 === 0 ? 'transparent' : colors.tableStripe,
+                borderBottom: rIdx === rows.length - 1 ? 'none' : `1px solid ${colors.refBorder}`
+              }}
+            >
+              {row.map((cell, cIdx) => (
+                <td key={cIdx} style={{
+                  padding: '12px 16px',
+                  verticalAlign: 'top',
+                  lineHeight: '1.65'
+                }}>
+                  {renderInlineFormatted(cell, colors)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/**
  * Render inline markdown formatting (**bold**, *italic*, `code`, [link](url), <url>)
  */
 function renderInlineFormatted(text, colors) {
   if (!text) return null;
 
-  // Split by links, bold, code, and URLs
   const parts = [];
-  let remaining = text;
-  let keyIdx = 0;
-
-  // Pattern for links [text](url) or <url> or **bold** or `code`
-  const regex = /(\[[^\]]+\]\([^)]+\)|<https?:\/\/[^>]+>|https?:\/\/[^\s)]+|\*\*[^*]+\*\*|`[^`]+`)/g;
+  const regex = /(\[[^\]]+\]\([^)]+\)|<https?:\/\/[^>]+>|https?:\/\/[^\s)]+|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
   
   let lastIndex = 0;
   let match;
+  let keyIdx = 0;
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -345,6 +480,14 @@ function renderInlineFormatted(text, colors) {
         <strong key={keyIdx++} style={{ fontWeight: '800', color: colors.heading }}>
           {token.slice(2, -2)}
         </strong>
+      );
+    }
+    // Italic *text*
+    else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(
+        <em key={keyIdx++} style={{ fontStyle: 'italic' }}>
+          {token.slice(1, -1)}
+        </em>
       );
     }
     // Code `text`

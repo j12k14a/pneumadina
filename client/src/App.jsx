@@ -35,7 +35,23 @@ export default function App() {
     let initialPosts = SEED_DATA.posts;
     try {
       const saved = localStorage.getItem('pneumadina_posts');
-      if (saved) initialPosts = JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merge with SEED_DATA so latest pristine posts take precedence
+        const seedMap = new Map(SEED_DATA.posts.map(p => [p.id, p]));
+        initialPosts = parsed.map(p => {
+          if (seedMap.has(p.id)) {
+            return { ...seedMap.get(p.id), likes_count: p.likes_count || seedMap.get(p.id).likes_count };
+          }
+          return p;
+        });
+        // Add any new seed posts not in saved
+        for (const sPost of SEED_DATA.posts) {
+          if (!initialPosts.some(p => p.id === sPost.id)) {
+            initialPosts.unshift(sPost);
+          }
+        }
+      }
       const dynamicLikes = JSON.parse(localStorage.getItem('pneumadina_dynamic_likes') || '{}');
       initialPosts = initialPosts.map(p => {
         if (dynamicLikes[p.id] !== undefined) {
@@ -333,6 +349,18 @@ export default function App() {
             });
             setPosts(updatedP);
             try { localStorage.setItem('pneumadina_posts', JSON.stringify(updatedP)); } catch (e) {}
+
+            // Keep currently viewed post synchronized with fresh content
+            setSelectedPost(curr => {
+              if (!curr) return null;
+              const fresh = updatedP.find(p => p.id === curr.id || (p.slug && p.slug === curr.slug));
+              return fresh || curr;
+            });
+            setFullPagePost(curr => {
+              if (!curr) return null;
+              const fresh = updatedP.find(p => p.id === curr.id || (p.slug && p.slug === curr.slug));
+              return fresh || curr;
+            });
           }
         }, () => {});
 
