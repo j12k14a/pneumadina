@@ -6,6 +6,7 @@ import VisiMisiSection from './components/VisiMisiSection';
 import PostCard from './components/PostCard';
 import FeaturedPostCard from './components/FeaturedPostCard';
 import PostDetailModal from './components/PostDetailModal';
+import ArticlePageView from './components/ArticlePageView';
 import TerimaPublikasi from './components/TerimaPublikasi';
 import BookClub from './components/BookClub';
 import Studio from './components/Studio';
@@ -77,6 +78,7 @@ export default function App() {
 
   // Modals & Deep-Linked States
   const [selectedPost, setSelectedPost] = useState(null);
+  const [fullPagePost, setFullPagePost] = useState(null);
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [showTerimaPublikasi, setShowTerimaPublikasi] = useState(false);
   const [showBookClub, setShowBookClub] = useState(false);
@@ -123,9 +125,17 @@ export default function App() {
   // DEEP-LINKING ROUTING & BIDIRECTIONAL URL MANAGEMENT
   // -------------------------------------------------------------
 
-  const handleSelectPost = (post, pushToHistory = true) => {
+  const handleSelectPost = (post, pushToHistory = true, forceFullPage = false) => {
     if (!post) return;
-    setSelectedPost(post);
+    const isLongArticle = (post.content?.length || 0) > 3500;
+    
+    if (forceFullPage || isLongArticle) {
+      setFullPagePost(post);
+      setSelectedPost(null);
+    } else {
+      setSelectedPost(post);
+      setFullPagePost(null);
+    }
     document.title = `${post.title} — Pneumadina`;
 
     if (pushToHistory) {
@@ -138,6 +148,7 @@ export default function App() {
 
   const handleClosePost = (pushToHistory = true) => {
     setSelectedPost(null);
+    setFullPagePost(null);
     document.title = DEFAULT_TITLE;
 
     if (pushToHistory) {
@@ -185,7 +196,13 @@ export default function App() {
       );
 
       if (match) {
-        setSelectedPost(match);
+        if ((match.content?.length || 0) > 3500) {
+          setFullPagePost(match);
+          setSelectedPost(null);
+        } else {
+          setSelectedPost(match);
+          setFullPagePost(null);
+        }
         document.title = `${match.title} — Pneumadina`;
       }
     } else if (route.type === 'team' && route.memberId) {
@@ -218,6 +235,7 @@ export default function App() {
       if (route.modal === 'studio') setShowStudio(true);
     } else if (route.type === 'home') {
       setSelectedPost(null);
+      setFullPagePost(null);
       setSelectedTeamMember(null);
       document.title = DEFAULT_TITLE;
     }
@@ -654,6 +672,23 @@ export default function App() {
   // Featured Post (First post or special editor's pick)
   const featuredPost = sortedPosts.length > 0 ? sortedPosts[0] : null;
   const regularPosts = sortedPosts.length > 1 ? sortedPosts.slice(1) : [];
+
+  // Dedicated Full Page Reading View for Long-Form Articles & Direct Routes
+  if (fullPagePost) {
+    return (
+      <ArticlePageView
+        post={fullPagePost}
+        onBack={() => handleClosePost()}
+        onLike={handleLike}
+        onBookmark={handleBookmark}
+        isLiked={likedIds.includes(fullPagePost.id)}
+        isBookmarked={bookmarkedIds.includes(fullPagePost.id)}
+        currentUser={currentUser}
+        onAddComment={handleAddComment}
+        showToast={showToast}
+      />
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#FAF8F5' }}>
@@ -1175,6 +1210,7 @@ export default function App() {
           currentUser={currentUser}
           onAddComment={handleAddComment}
           showToast={showToast}
+          onOpenFullPage={(p) => handleSelectPost(p, true, true)}
         />
       )}
 
@@ -1195,7 +1231,14 @@ export default function App() {
           categories={categories}
           tags={tags}
           currentUser={currentUser}
-          onPostCreated={() => { fetchPosts(); fetchCategories(); showToast('🎉 Artikel berhasil diterbitkan!'); }}
+          onPostCreated={(newP) => { 
+            fetchPosts(); 
+            fetchCategories(); 
+            showToast('🎉 Artikel berhasil diterbitkan!');
+            if (newP && (newP.content?.length || 0) > 3000) {
+              handleSelectPost(newP, true, true);
+            }
+          }}
           onCategoryCreated={() => { fetchCategories(); showToast('🏷️ Kategori baru berhasil ditambahkan dan disinkronkan!'); }}
         />
       )}

@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
-import { X, Heart, Bookmark, Share2, MessageSquare, Send, Calendar, User, Tag, Check, Sparkles, Copy, ExternalLink } from 'lucide-react';
+import { 
+  X, 
+  Heart, 
+  Bookmark, 
+  Share2, 
+  MessageSquare, 
+  Send, 
+  Calendar, 
+  User, 
+  Tag, 
+  Check, 
+  Sparkles, 
+  Copy, 
+  ExternalLink,
+  BookOpen,
+  FileText
+} from 'lucide-react';
 import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
 
 export default function PostDetailModal({ 
@@ -11,7 +27,8 @@ export default function PostDetailModal({
   isBookmarked, 
   currentUser, 
   onAddComment,
-  showToast 
+  showToast,
+  onOpenFullPage
 }) {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
@@ -22,6 +39,9 @@ export default function PostDetailModal({
   if (!post) return null;
 
   const articleUrl = getArticleUrl(post);
+  const isLongArticle = (post.content?.length || 0) > 2500;
+  const readTimeMinutes = Math.max(2, Math.ceil((post.content?.length || 1000) / 450));
+
   const socialLinks = getSocialShareLinks({
     title: post.title,
     url: articleUrl,
@@ -117,6 +137,11 @@ export default function PostDetailModal({
                   {c.name}
                 </span>
               ))}
+              {isLongArticle && (
+                <span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>
+                  <FileText size={11} /> Paper Ilmiah ({readTimeMinutes} min)
+                </span>
+              )}
             </div>
 
             <h2 className="font-serif" style={{ fontSize: 'clamp(1.2rem, 4.5vw, 1.75rem)', fontWeight: '900', color: '#111827', lineHeight: 1.15 }}>
@@ -130,30 +155,82 @@ export default function PostDetailModal({
             </div>
           </div>
 
-          <button 
-            onClick={onClose}
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#111827',
-              border: '2px solid #111827',
-              borderRadius: '50%',
-              width: '34px',
-              height: '34px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              fontWeight: '900',
-              flexShrink: 0
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            {onOpenFullPage && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenFullPage(post);
+                }}
+                className="btn btn-outline"
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  backgroundColor: '#FFFFFF',
+                  fontWeight: '900'
+                }}
+                title="Buka Halaman Khusus / Mode Baca Penuh"
+              >
+                <BookOpen size={13} /> <span className="hide-on-very-small">Halaman Khusus</span>
+              </button>
+            )}
+
+            <button 
+              onClick={onClose}
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#111827',
+                border: '2px solid #111827',
+                borderRadius: '50%',
+                width: '34px',
+                height: '34px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontWeight: '900'
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Modal Scrollable Article Body */}
         <div style={{ padding: 'clamp(0.85rem, 3.5vw, 1.5rem)', overflowY: 'auto', flexGrow: 1 }}>
           
+          {/* Long Article Banner Notification */}
+          {isLongArticle && (
+            <div style={{
+              backgroundColor: '#EFF6FF',
+              border: '2px solid #2563EB',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              marginBottom: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ fontSize: '0.8rem', color: '#1E40AF', fontWeight: '700' }}>
+                📑 Ini adalah artikel ilmiah panjang (~{readTimeMinutes} menit baca). Ingin pengalaman membaca dengan daftar isi, kontrol ukuran teks, dan mode fokus?
+              </div>
+              {onOpenFullPage && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenFullPage(post);
+                  }}
+                  className="btn btn-blue"
+                  style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                >
+                  <BookOpen size={13} /> Buka Halaman Baca Penuh
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Cover Photo / Thumbnail */}
           {post.thumbnail && (
             <div style={{
@@ -178,135 +255,64 @@ export default function PostDetailModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#FAF8F5',
-            border: '2px dashed #111827',
+            gap: '8px',
+            backgroundColor: '#FFFDF5',
+            border: '2px solid #111827',
             borderRadius: '10px',
             padding: '8px 12px',
             marginBottom: '1.25rem',
-            fontSize: '0.75rem',
-            gap: '8px',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4B5563', overflow: 'hidden' }}>
-              <span style={{ fontWeight: '900', color: '#111827' }}>🔗 LINK ARTIKEL:</span>
-              <span style={{ fontFamily: 'monospace', color: '#2563EB', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4B5563', overflow: 'hidden' }}>
+              <span style={{ fontWeight: '800', color: '#111827', flexShrink: 0 }}>🔗 Tautan Langsung:</span>
+              <span style={{ 
+                fontFamily: 'monospace', 
+                fontSize: '0.725rem', 
+                color: '#2563EB', 
+                textOverflow: 'ellipsis', 
+                overflow: 'hidden', 
+                whiteSpace: 'nowrap',
+                maxWidth: '280px' 
+              }}>
                 {articleUrl}
               </span>
             </div>
 
-            <button
-              onClick={handleCopyDirectLink}
-              className="btn btn-outline"
-              style={{
-                padding: '3px 10px',
-                fontSize: '0.7rem',
-                backgroundColor: copiedToast ? '#059669' : '#FFFFFF',
-                color: copiedToast ? '#FFFFFF' : '#111827',
-                border: '1.5px solid #111827'
-              }}
-            >
-              {copiedToast ? <Check size={12} /> : <Copy size={12} />}
-              {copiedToast ? 'Tersalin!' : 'Salin Tautan'}
-            </button>
-          </div>
-
-          {/* Article Text Content */}
-          <div style={{
-            fontSize: 'clamp(0.9rem, 2.5vw, 1.05rem)',
-            lineHeight: '1.75',
-            color: '#1F2937',
-            whiteSpace: 'pre-line',
-            marginBottom: '1.5rem'
-          }}>
-            {post.content}
-          </div>
-
-          {/* Article Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '1.5rem' }}>
-              {post.tags.map(t => (
-                <span key={t.id} style={{
-                  fontSize: '0.75rem',
-                  fontWeight: '800',
-                  padding: '3px 10px',
-                  backgroundColor: '#EFF6FF',
-                  color: '#2563EB',
-                  border: '1.5px solid #2563EB',
-                  borderRadius: '9999px'
-                }}>
-                  #{t.name}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Engagement Buttons Bar (Like, Bookmark, Share) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px',
-            backgroundColor: '#FFFDF5',
-            border: '2.5px solid #111827',
-            borderRadius: '14px',
-            marginBottom: '1.5rem',
-            flexWrap: 'wrap',
-            gap: '10px'
-          }}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => onLike(post.id)}
-                className={`btn ${isLiked ? 'btn-yellow' : 'btn-outline'}`}
-                style={{ padding: '6px 14px', fontSize: '0.825rem' }}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={handleCopyDirectLink}
+                className="btn btn-outline"
+                style={{ padding: '3px 8px', fontSize: '0.7rem', backgroundColor: '#FFFFFF' }}
+                title="Salin Link Langsung"
               >
-                <Heart size={16} fill={isLiked ? '#DC2626' : 'none'} color={isLiked ? '#DC2626' : '#111827'} />
-                {post.likes_count || 0} Suka
-              </button>
-
-              <button 
-                onClick={() => onBookmark(post.id)}
-                className={`btn ${isBookmarked ? 'btn-yellow' : 'btn-outline'}`}
-                style={{ padding: '6px 14px', fontSize: '0.825rem' }}
-              >
-                <Bookmark size={16} fill={isBookmarked ? '#111827' : 'none'} />
-                {isBookmarked ? 'Tersimpan' : 'Bookmark'}
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <button 
-                onClick={handleShare}
-                className="btn btn-yellow"
-                style={{ padding: '6px 16px', fontSize: '0.825rem' }}
-              >
-                <Share2 size={16} /> {copiedToast ? 'Tautan Disalin!' : 'Bagikan Artikel'}
+                {copiedToast ? <><Check size={12} /> Tersalin!</> : <><Copy size={12} /> Salin Link</>}
               </button>
 
               <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
-                className="btn btn-outline"
-                style={{ padding: '6px 10px', fontSize: '0.825rem' }}
-                title="Pilihan Sosial Media"
+                onClick={handleShare}
+                className="btn btn-yellow"
+                style={{ padding: '3px 10px', fontSize: '0.7rem' }}
+                title="Bagikan ke WhatsApp/Sosmed"
               >
-                •••
+                <Share2 size={12} /> Bagikan
               </button>
             </div>
           </div>
 
-          {/* Expanded Social Share Channels */}
+          {/* Social Share Menu */}
           {showShareMenu && (
-            <div className="animate-card-pop" style={{
+            <div className="animate-popup-enter" style={{
               backgroundColor: '#FFFFFF',
               border: '2px solid #111827',
               borderRadius: '12px',
-              padding: '12px',
-              marginBottom: '1.5rem',
-              boxShadow: '4px 4px 0px 0px #111827'
+              padding: '10px 14px',
+              marginBottom: '1.25rem',
+              boxShadow: '3px 3px 0px 0px #111827'
             }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827', marginBottom: '8px' }}>
-                BAGIKAN KE SOSIAL MEDIA:
+              <div style={{ fontSize: '0.75rem', fontWeight: '800', marginBottom: '8px', color: '#111827' }}>
+                KIRIM CEPAT KE MEDIA SOSIAL:
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <a
                   href={socialLinks.whatsapp}
                   target="_blank"
@@ -316,12 +322,12 @@ export default function PostDetailModal({
                     backgroundColor: '#25D366',
                     color: '#FFFFFF',
                     border: '1.5px solid #111827',
-                    padding: '5px 12px',
-                    fontSize: '0.75rem',
+                    padding: '4px 10px',
+                    fontSize: '0.725rem',
                     textDecoration: 'none'
                   }}
                 >
-                  💬 WhatsApp
+                  WhatsApp
                 </a>
 
                 <a
@@ -333,12 +339,12 @@ export default function PostDetailModal({
                     backgroundColor: '#000000',
                     color: '#FFFFFF',
                     border: '1.5px solid #111827',
-                    padding: '5px 12px',
-                    fontSize: '0.75rem',
+                    padding: '4px 10px',
+                    fontSize: '0.725rem',
                     textDecoration: 'none'
                   }}
                 >
-                  𝕏 Twitter / X
+                  Twitter / X
                 </a>
 
                 <a
@@ -350,95 +356,177 @@ export default function PostDetailModal({
                     backgroundColor: '#229ED9',
                     color: '#FFFFFF',
                     border: '1.5px solid #111827',
-                    padding: '5px 12px',
-                    fontSize: '0.75rem',
+                    padding: '4px 10px',
+                    fontSize: '0.725rem',
                     textDecoration: 'none'
                   }}
                 >
-                  ✈️ Telegram
+                  Telegram
                 </a>
-
-                <button
-                  type="button"
-                  onClick={handleCopyDirectLink}
-                  className="btn btn-outline"
-                  style={{ padding: '5px 12px', fontSize: '0.75rem' }}
-                >
-                  <Copy size={13} /> {copiedToast ? 'Tersalin!' : 'Salin URL'}
-                </button>
               </div>
             </div>
           )}
 
+          {/* Article Text Content */}
+          <div style={{
+            fontSize: '0.95rem',
+            lineHeight: '1.8',
+            color: '#1F2937',
+            marginBottom: '1.5rem',
+            whiteSpace: 'pre-line',
+            textAlign: 'justify'
+          }}>
+            {post.content}
+          </div>
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '1.5rem', paddingTop: '1rem', borderTop: '1.5px dashed #E5E7EB' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#6B7280', alignSelf: 'center', marginRight: '4px' }}>
+                TAGS:
+              </span>
+              {post.tags.map(t => (
+                <span key={t.id || t.name} style={{
+                  fontSize: '0.75rem',
+                  fontWeight: '700',
+                  padding: '2px 8px',
+                  backgroundColor: '#F3F4F6',
+                  color: '#374151',
+                  borderRadius: '6px',
+                  border: '1px solid #D1D5DB'
+                }}>
+                  #{t.name}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Action Row: Like, Bookmark, Share */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            backgroundColor: '#F9FAFB',
+            borderRadius: '12px',
+            border: '2px solid #111827',
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => onLike(post.id)}
+                className={`btn ${isLiked ? 'btn-yellow' : 'btn-outline'}`}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Heart size={15} fill={isLiked ? '#DC2626' : 'none'} color={isLiked ? '#DC2626' : '#111827'} />
+                {post.likes_count || 0} Suka
+              </button>
+
+              <button
+                onClick={() => onBookmark(post.id)}
+                className={`btn ${isBookmarked ? 'btn-yellow' : 'btn-outline'}`}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Bookmark size={15} fill={isBookmarked ? '#111827' : 'none'} />
+                {isBookmarked ? 'Tersimpan' : 'Simpan'}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {onOpenFullPage && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenFullPage(post);
+                  }}
+                  className="btn btn-outline"
+                  style={{ padding: '6px 14px', fontSize: '0.8rem', backgroundColor: '#FFFFFF' }}
+                >
+                  <BookOpen size={14} /> Baca Lengkap
+                </button>
+              )}
+
+              <button
+                onClick={handleShare}
+                className="btn btn-yellow"
+                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+              >
+                <Share2 size={14} /> {copiedToast ? 'Tersalin!' : 'Bagikan'}
+              </button>
+            </div>
+          </div>
+
           {/* Comments Section */}
-          <div style={{ borderTop: '2.5px solid #E5E7EB', paddingTop: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <MessageSquare size={18} color="#2563EB" /> Komentar Kawan ({post.comments?.length || 0})
+          <div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#111827', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MessageSquare size={16} color="#2563EB" /> Tanggapan ({post.comments?.length || 0})
             </h3>
 
-            {/* Comment Form */}
+            {/* Input Comment */}
             {currentUser ? (
-              <form onSubmit={handleSendComment} style={{ marginBottom: '1.5rem' }}>
-                <textarea 
-                  rows={3}
-                  required
-                  placeholder="Tulis gagasan atau komentar tanggapan Anda..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: '2px solid #111827',
-                    fontSize: '0.875rem',
-                    marginBottom: '8px',
-                    outline: 'none',
-                    resize: 'vertical'
-                  }}
-                />
-                <button type="submit" className="btn btn-yellow" style={{ padding: '6px 16px', fontSize: '0.825rem' }}>
-                  <Send size={15} /> Kirim Komentar
-                </button>
+              <form onSubmit={handleSendComment} style={{ marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Tulis tanggapan / refleksi Anda..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      border: '2px solid #111827',
+                      fontSize: '0.85rem',
+                      outline: 'none'
+                    }}
+                  />
+                  <button type="submit" className="btn btn-yellow" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>
+                    <Send size={14} /> Kirim
+                  </button>
+                </div>
               </form>
             ) : (
-              <div style={{ padding: '12px', backgroundColor: '#EFF6FF', borderRadius: '10px', border: '1.5px solid #2563EB', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
-                💡 Silakan <strong>masuk ke akun</strong> untuk menulis komentar tanggapan.
+              <div style={{ padding: '8px 12px', backgroundColor: '#EFF6FF', borderRadius: '8px', border: '1.5px solid #2563EB', marginBottom: '1rem', fontSize: '0.8rem' }}>
+                💡 Silakan masuk untuk ikut berdiskusi dan memberikan komentar.
               </div>
             )}
 
-            {/* Comments List */}
+            {/* Comment List */}
             {post.comments && post.comments.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {post.comments.map(c => (
                   <div key={c.id} style={{
-                    backgroundColor: '#FAF8F5',
-                    border: '2px solid #111827',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    boxShadow: '2px 2px 0px 0px #111827'
+                    backgroundColor: '#F9FAFB',
+                    border: '1.5px solid #E5E7EB',
+                    borderRadius: '10px',
+                    padding: '10px 12px'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#111827' }}>
-                        {c.author_name || c.user_name || 'Kawan Pneumadina'}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: '#6B7280' }}>
-                        {new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </div>
+                      <span style={{ fontWeight: '800', fontSize: '0.8rem', color: '#111827' }}>
+                        {c.author_name || c.user_name || 'Pembaca'}
+                      </span>
+                      <span style={{ fontSize: '0.65rem', color: '#6B7280' }}>
+                        {new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
                     </div>
-                    <p style={{ fontSize: '0.825rem', color: '#374151', lineHeight: '1.45' }}>
+                    <p style={{ fontSize: '0.8rem', color: '#374151', margin: 0 }}>
                       {c.content}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#6B7280', fontSize: '0.85rem' }}>
-                Belum ada komentar. Jadilah yang pertama memberikan refleksi pada karya ini!
+              <div style={{ textAlign: 'center', padding: '1rem', color: '#6B7280', fontSize: '0.8rem' }}>
+                Belum ada tanggapan. Jadilah yang pertama berkomentar!
               </div>
             )}
           </div>
 
         </div>
+
       </div>
     </div>
   );
