@@ -1,15 +1,7 @@
-import React, { useState } from 'react';
-import { Heart, QrCode, Copy, CheckCircle2, Sparkles, X, ShieldCheck, Globe, BookOpen } from 'lucide-react';
+import React from 'react';
+import { Heart, QrCode, Sparkles, X, Globe, BookOpen } from 'lucide-react';
 
 export default function DonationModal({ onClose }) {
-  const [copiedAccount, setCopiedAccount] = useState(false);
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedAccount(true);
-    setTimeout(() => setCopiedAccount(false), 3000);
-  };
-
   return (
     <div className="animate-backdrop" style={{
       position: 'fixed',
@@ -88,7 +80,7 @@ export default function DonationModal({ onClose }) {
           marginBottom: '1.25rem'
         }}>
           <div style={{ backgroundColor: '#FFFDF5', border: '1.5px solid #111827', padding: '8px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '800' }}>
-            🌐 Operasional Server & Domain (`pneumadina.is-a.dev`)
+            🌐 Operasional Server & Domain (<code>pneumadina.web.app</code>)
           </div>
           <div style={{ backgroundColor: '#EFF6FF', border: '1.5px solid #2563EB', padding: '8px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '800', color: '#2563EB' }}>
             📖 Buku & Lapak Baca Paramadina Literasi
@@ -102,65 +94,52 @@ export default function DonationModal({ onClose }) {
         <div style={{
           backgroundColor: '#FFD600',
           border: '3px solid #111827',
-          borderRadius: '18px',
+          borderRadius: '20px',
           padding: '16px',
           textAlign: 'center',
           marginBottom: '1.25rem',
           boxShadow: '4px 4px 0px 0px #111827'
         }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#111827', color: '#FFD600', padding: '4px 12px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '900', marginBottom: '12px' }}>
-            <QrCode size={14} /> SCAN QRIS BEBAS BIAYA ADMIN
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#111827', color: '#FFD600', padding: '5px 14px', borderRadius: '9999px', fontSize: '0.775rem', fontWeight: '900', marginBottom: '14px' }}>
+            <QrCode size={15} /> SCAN QRIS BEBAS BIAYA ADMIN
           </div>
 
           <div style={{
             backgroundColor: '#FFFFFF',
-            padding: '12px',
-            borderRadius: '14px',
-            border: '2px solid #111827',
+            padding: '10px',
+            borderRadius: '16px',
+            border: '2.5px solid #111827',
             display: 'inline-block',
-            maxWidth: '240px',
-            boxShadow: '3px 3px 0px 0px #111827',
-            marginBottom: '8px'
+            maxWidth: '290px',
+            width: '100%',
+            boxShadow: '4px 4px 0px 0px #111827',
+            marginBottom: '12px'
           }}>
             <img 
-              src="/qris-pneumadina.png" 
-              alt="QRIS Donasi Pneumadina" 
-              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px' }} 
+              src="/qris-pneumadina.png?v=2" 
+              alt="QRIS Donasi Pneumadina - Muhammad Rayan Bramantyo" 
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '10px' }} 
             />
           </div>
 
-          <p style={{ fontSize: '0.775rem', fontWeight: '700', color: '#111827' }}>
-            Bisa di-scan via <strong>GoPay, OVO, ShopeePay, DANA, BCA, Mandiri, BRI</strong>, dan seluruh aplikasi M-Banking & E-Wallet berlogo QRIS.
-          </p>
-        </div>
-
-        {/* Alternative Bank Transfer Info */}
-        <div style={{
-          backgroundColor: '#FAF8F5',
-          border: '2px solid #111827',
-          borderRadius: '14px',
-          padding: '12px 16px',
-          marginBottom: '1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '10px'
-        }}>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#6B7280' }}>TRANSFER REKENING BANK BCA</div>
-            <div style={{ fontSize: '1rem', fontWeight: '900', color: '#111827' }}>8410-9238-41</div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#2563EB' }}>a.n. Pneumadina Komunitas Penggerak</div>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #111827',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            maxWidth: '360px',
+            margin: '0 auto 10px auto',
+            fontSize: '0.775rem',
+            color: '#111827',
+            fontWeight: '700'
+          }}>
+            <div><strong>Nama Merchant:</strong> MUHAMMAD RAYAN BRAMANTYO, EDUKASI</div>
+            <div style={{ color: '#4B5563', fontSize: '0.7rem' }}>NMID: ID1026554120893</div>
           </div>
 
-          <button 
-            onClick={() => handleCopy('8410923841')}
-            className={`btn ${copiedAccount ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '6px 14px', fontSize: '0.775rem' }}
-          >
-            {copiedAccount ? <CheckCircle2 size={14} color="#059669" /> : <Copy size={14} />}
-            {copiedAccount ? 'Tersalin!' : 'Salin Rekening'}
-          </button>
+          <p style={{ fontSize: '0.775rem', fontWeight: '700', color: '#111827', margin: 0 }}>
+            Bisa di-scan via <strong>GoPay, OVO, ShopeePay, DANA, BCA Mobile, Livin' Mandiri, BRImo</strong>, dan seluruh aplikasi M-Banking & E-Wallet berlogo QRIS / GPN.
+          </p>
         </div>
 
         {/* Footer Actions */}
