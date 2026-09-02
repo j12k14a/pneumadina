@@ -24,19 +24,35 @@ export default function Studio({
   tags, 
   currentUser, 
   onPostCreated, 
-  onCategoryCreated 
+  onCategoryCreated,
+  postToEdit = null,
+  onPostUpdated
 }) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [thumbnail, setThumbnail] = useState('');
+  const [title, setTitle] = useState(postToEdit?.title || '');
+  const [content, setContent] = useState(postToEdit?.content || '');
+  const [thumbnail, setThumbnail] = useState(postToEdit?.thumbnail || '');
   const [localCategories, setLocalCategories] = useState(categories);
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || 1);
+  const [selectedCategory, setSelectedCategory] = useState(
+    postToEdit?.category_id || postToEdit?.categories?.[0]?.id || categories[0]?.id || 1
+  );
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState(
+    postToEdit?.tags ? postToEdit.tags.map(t => t.id || t.name) : []
+  );
   const [newTagName, setNewTagName] = useState('');
   const [localTags, setLocalTags] = useState(tags);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (postToEdit) {
+      setTitle(postToEdit.title || '');
+      setContent(postToEdit.content || '');
+      setThumbnail(postToEdit.thumbnail || '');
+      setSelectedCategory(postToEdit.category_id || postToEdit.categories?.[0]?.id || categories[0]?.id || 1);
+      setSelectedTags(postToEdit.tags ? postToEdit.tags.map(t => t.id || t.name) : []);
+    }
+  }, [postToEdit]);
 
   // PDF Upload & Extraction State
   const [pdfScanning, setPdfScanning] = useState(false);
@@ -218,6 +234,64 @@ export default function Studio({
 
     const postSlug = slugify(title.trim());
 
+    // EDIT MODE SUBMISSION
+    if (postToEdit) {
+      const updatedPost = {
+        ...postToEdit,
+        title: title.trim(),
+        slug: postSlug || postToEdit.slug,
+        content: content.trim(),
+        excerpt: content.trim().substring(0, 160).replace(/[#*`_>]/g, '') + '...',
+        thumbnail: thumbnail.trim() || postToEdit.thumbnail || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200',
+        category_id: catObj.id,
+        category_name: catObj.name,
+        categories: [catObj],
+        tags: matchedTags.length > 0 ? matchedTags : (postToEdit.tags || [{ id: 1, name: 'Editorial' }]),
+        read_time: Math.max(1, Math.round(content.split(/\s+/).length / 200)),
+        updated_at: new Date().toISOString()
+      };
+
+      // 1. Simpan ke Cloud Firestore (Realtime)
+      if (db) {
+        try {
+          await setDoc(doc(db, 'posts', String(updatedPost.id)), updatedPost, { merge: true });
+        } catch (e) {
+          console.warn('Firestore post update notice:', e);
+        }
+      }
+
+      // 2. Simpan ke cache lokal
+      try {
+        const savedPosts = localStorage.getItem('pneumadina_posts');
+        if (savedPosts) {
+          const pList = JSON.parse(savedPosts);
+          const newPList = pList.map(p => p.id === updatedPost.id ? updatedPost : p);
+          localStorage.setItem('pneumadina_posts', JSON.stringify(newPList));
+        }
+      } catch (e) {}
+
+      // 3. Notifikasi backend lokal jika aktif
+      try {
+        fetch(`/api/posts/${updatedPost.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            content,
+            thumbnail,
+            category_ids: [selectedCategory],
+            tag_ids: selectedTags
+          })
+        }).catch(() => {});
+      } catch (err) {}
+
+      setLoading(false);
+      if (onPostUpdated) onPostUpdated(updatedPost);
+      onClose();
+      return;
+    }
+
+    // CREATE MODE SUBMISSION
     const newPost = {
       id: Date.now(),
       title: title.trim(),
@@ -275,7 +349,7 @@ export default function Studio({
     } catch (err) {}
 
     setLoading(false);
-    onPostCreated(newPost);
+    if (onPostCreated) onPostCreated(newPost);
     onClose();
   };
 
@@ -320,10 +394,14 @@ export default function Studio({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="badge badge-dark" style={{ fontSize: '0.65rem' }}>STUDIO PENULIS</span>
-              <span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>AI & SMART PDF SCAN</span>
+              {postToEdit ? (
+                <span className="badge badge-yellow" style={{ fontSize: '0.65rem', backgroundColor: '#FFFFFF' }}>MODE EDIT ARTIKEL</span>
+              ) : (
+                <span className="badge badge-blue" style={{ fontSize: '0.65rem' }}>AI & SMART PDF SCAN</span>
+              )}
             </div>
             <h2 className="font-serif" style={{ fontSize: 'clamp(1.2rem, 4vw, 1.6rem)', fontWeight: '900', color: '#111827', marginTop: '2px' }}>
-              Tulis & Terbitkan Artikel
+              {postToEdit ? 'Edit & Perbarui Artikel' : 'Tulis & Terbitkan Artikel'}
             </h2>
           </div>
 
@@ -655,11 +733,11 @@ export default function Studio({
             >
               {loading ? (
                 <>
-                  <Loader2 className="animate-spin" size={16} /> Menerbitkan...
+                  <Loader2 className="animate-spin" size={16} /> {postToEdit ? 'Menyimpan...' : 'Menerbitkan...'}
                 </>
               ) : (
                 <>
-                  <Send size={16} /> Terbitkan Artikel
+                  <Send size={16} /> {postToEdit ? 'Simpan Perubahan' : 'Terbitkan Artikel'}
                 </>
               )}
             </button>

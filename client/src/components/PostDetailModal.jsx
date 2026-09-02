@@ -14,7 +14,8 @@ import {
   Copy, 
   ExternalLink,
   BookOpen,
-  FileText
+  FileText,
+  Edit2
 } from 'lucide-react';
 import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
 import ArticleContentRenderer from './ArticleContentRenderer';
@@ -29,7 +30,8 @@ export default function PostDetailModal({
   currentUser, 
   onAddComment,
   showToast,
-  onOpenFullPage
+  onOpenFullPage,
+  onEditPost
 }) {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
@@ -229,6 +231,41 @@ export default function PostDetailModal({
                   <BookOpen size={13} /> Buka Halaman Baca Penuh
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Author / Admin Edit Banner */}
+          {currentUser && (
+            currentUser.role_id === 1 || 
+            currentUser.id === post.user_id || 
+            (currentUser.username && post.author_username && currentUser.username.toLowerCase() === post.author_username.toLowerCase()) ||
+            (currentUser.full_name && post.author_name && currentUser.full_name.toLowerCase() === post.author_name.toLowerCase())
+          ) && onEditPost && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#FEF3C7',
+              border: '2px solid #B45309',
+              borderRadius: '12px',
+              padding: '8px 14px',
+              marginBottom: '1.25rem',
+              gap: '10px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ fontSize: '0.8rem', color: '#92400E', fontWeight: '800' }}>
+                ✏️ Anda adalah penulis artikel ini ({post.author_name || currentUser.full_name}). Ingin memperbarui naskah atau tabel?
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onEditPost(post);
+                }}
+                className="btn btn-yellow"
+                style={{ padding: '4px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Edit2 size={13} /> Edit Artikel di Studio
+              </button>
             </div>
           )}
 

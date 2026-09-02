@@ -19,7 +19,8 @@ import {
   Sun, 
   Moon, 
   FileText,
-  ChevronUp
+  ChevronUp,
+  Edit2
 } from 'lucide-react';
 import { getArticleUrl, shareContent, getSocialShareLinks } from '../utils/urlHelper';
 import ArticleContentRenderer from './ArticleContentRenderer';
@@ -33,7 +34,8 @@ export default function ArticlePageView({
   isBookmarked,
   currentUser,
   onAddComment,
-  showToast
+  showToast,
+  onEditPost
 }) {
   const [fontSize, setFontSize] = useState(17); // 15px - 22px
   const [readingTheme, setReadingTheme] = useState('light'); // 'light' | 'sepia' | 'dark'
@@ -365,6 +367,32 @@ export default function ArticlePageView({
               {readingTheme === 'sepia' && <>📜 Sepia</>}
               {readingTheme === 'dark' && <>🌙 Malam</>}
             </button>
+
+            {/* Author / Admin Edit Button */}
+            {currentUser && (
+              currentUser.role_id === 1 || 
+              currentUser.id === post.user_id || 
+              (currentUser.username && post.author_username && currentUser.username.toLowerCase() === post.author_username.toLowerCase()) ||
+              (currentUser.full_name && post.author_name && currentUser.full_name.toLowerCase() === post.author_name.toLowerCase())
+            ) && onEditPost && (
+              <button
+                onClick={() => onEditPost(post)}
+                className="btn btn-outline"
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: currentTheme.surface,
+                  color: currentTheme.heading,
+                  borderColor: currentTheme.border
+                }}
+                title="Edit Artikel di Studio"
+              >
+                <Edit2 size={13} color="#D97706" /> Edit
+              </button>
+            )}
 
             {/* Share Button */}
             <button

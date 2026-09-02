@@ -27,7 +27,9 @@ export default function RoleDashboardModal({
   onLike, 
   onBookmark, 
   likedIds, 
-  bookmarkedIds 
+  bookmarkedIds,
+  onEditPost,
+  onDeletePost
 }) {
   const [activeTab, setActiveTab] = useState(currentUser?.role_id === 1 ? 'submissions' : currentUser?.role_id === 2 ? 'my-posts' : 'bookmarks');
   const [submissionList, setSubmissionList] = useState([]);
@@ -381,7 +383,12 @@ export default function RoleDashboardModal({
   const isRoleAuthor = currentUser?.role_id === 2;
   const isRoleMember = currentUser?.role_id === 3;
 
-  const myAuthoredPosts = allPosts.filter(p => p.user_id === currentUser?.id);
+  const myAuthoredPosts = allPosts.filter(p => 
+    p.user_id === currentUser?.id || 
+    (currentUser?.username && p.author_username?.toLowerCase() === currentUser.username.toLowerCase()) || 
+    (currentUser?.full_name && p.author_name?.toLowerCase() === currentUser.full_name.toLowerCase()) ||
+    (currentUser?.email && p.author_email?.toLowerCase() === currentUser.email.toLowerCase())
+  );
   const myBookmarkedPosts = allPosts.filter(p => bookmarkedIds.includes(p.id));
   const myLikedPosts = allPosts.filter(p => likedIds.includes(p.id));
 
@@ -1116,9 +1123,14 @@ export default function RoleDashboardModal({
           {activeTab === 'my-posts' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '800' }}>
-                  Karya Artikel Penulis ({myAuthoredPosts.length})
-                </h3>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '800' }}>
+                    Karya Artikel Penulis ({myAuthoredPosts.length})
+                  </h3>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                    Kelola, edit naskah, atau perbarui artikel karya Anda kapan saja.
+                  </p>
+                </div>
                 <button className="btn btn-yellow" onClick={() => { onClose(); onOpenStudio(); }} style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
                   <PenSquare size={15} /> Tulis Artikel Baru
                 </button>
@@ -1129,18 +1141,67 @@ export default function RoleDashboardModal({
                   Anda belum menulis artikel. Klik "Tulis Artikel Baru" untuk mempublikasikan karya Anda!
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                   {myAuthoredPosts.map(post => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onSelectPost={onSelectPost}
-                      onLike={onLike}
-                      onBookmark={onBookmark}
-                      isLiked={likedIds.includes(post.id)}
-                      isBookmarked={bookmarkedIds.includes(post.id)}
-                      currentUser={currentUser}
-                    />
+                    <div key={post.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <PostCard
+                        post={post}
+                        onSelectPost={onSelectPost}
+                        onLike={onLike}
+                        onBookmark={onBookmark}
+                        isLiked={likedIds.includes(post.id)}
+                        isBookmarked={bookmarkedIds.includes(post.id)}
+                        currentUser={currentUser}
+                      />
+                      {/* Author Management Action Bar */}
+                      <div style={{
+                        marginTop: '-12px',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        gap: '6px',
+                        backgroundColor: '#FFFFFF',
+                        border: '2px solid #111827',
+                        borderRadius: '0 0 12px 12px',
+                        padding: '8px 10px',
+                        boxShadow: '3px 3px 0px 0px #111827'
+                      }}>
+                        <button
+                          onClick={() => {
+                            onClose();
+                            if (onEditPost) onEditPost(post);
+                          }}
+                          className="btn btn-yellow"
+                          style={{
+                            flex: 1,
+                            padding: '6px 8px',
+                            fontSize: '0.75rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Edit2 size={13} /> Edit Artikel
+                        </button>
+                        <button
+                          onClick={() => handleDeletePost(post.id, post.title)}
+                          className="btn btn-outline"
+                          style={{
+                            padding: '6px 10px',
+                            fontSize: '0.75rem',
+                            color: '#DC2626',
+                            borderColor: '#DC2626',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px'
+                          }}
+                          title="Hapus Artikel"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

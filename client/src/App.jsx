@@ -95,6 +95,7 @@ export default function App() {
   // Modals & Deep-Linked States
   const [selectedPost, setSelectedPost] = useState(null);
   const [fullPagePost, setFullPagePost] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [showTerimaPublikasi, setShowTerimaPublikasi] = useState(false);
   const [showBookClub, setShowBookClub] = useState(false);
@@ -172,6 +173,12 @@ export default function App() {
         window.history.pushState({ type: 'home' }, '', '/');
       } catch (e) {}
     }
+  };
+
+  const handleOpenEditPost = (post) => {
+    if (!post) return;
+    setEditingPost(post);
+    setShowStudio(true);
   };
 
   const handleSelectTeamMember = (member, pushToHistory = true) => {
@@ -714,6 +721,7 @@ export default function App() {
         currentUser={currentUser}
         onAddComment={handleAddComment}
         showToast={showToast}
+        onEditPost={handleOpenEditPost}
       />
     );
   }
@@ -1239,6 +1247,7 @@ export default function App() {
           onAddComment={handleAddComment}
           showToast={showToast}
           onOpenFullPage={(p) => handleSelectPost(p, true, true)}
+          onEditPost={handleOpenEditPost}
         />
       )}
 
@@ -1255,16 +1264,29 @@ export default function App() {
 
       {showStudio && (
         <Studio
-          onClose={() => setShowStudio(false)}
+          onClose={() => { setShowStudio(false); setEditingPost(null); }}
           categories={categories}
           tags={tags}
           currentUser={currentUser}
+          postToEdit={editingPost}
           onPostCreated={(newP) => { 
             fetchPosts(); 
             fetchCategories(); 
             showToast('🎉 Artikel berhasil diterbitkan!');
             if (newP && (newP.content?.length || 0) > 3000) {
               handleSelectPost(newP, true, true);
+            }
+          }}
+          onPostUpdated={(upPost) => {
+            setEditingPost(null);
+            fetchPosts();
+            fetchCategories();
+            showToast('💾 Perubahan artikel berhasil disimpan!');
+            if (fullPagePost && fullPagePost.id === upPost.id) {
+              setFullPagePost(upPost);
+            }
+            if (selectedPost && selectedPost.id === upPost.id) {
+              setSelectedPost(upPost);
             }
           }}
           onCategoryCreated={() => { fetchCategories(); showToast('🏷️ Kategori baru berhasil ditambahkan dan disinkronkan!'); }}
@@ -1286,13 +1308,18 @@ export default function App() {
           teamMembers={teamMembers}
           onRefreshTeam={fetchTeam}
           onRefreshData={() => { fetchPosts(); fetchUsers(); fetchTeam(); }}
-          onOpenStudio={() => setShowStudio(true)}
+          onOpenStudio={() => { setEditingPost(null); setShowStudio(true); }}
           onOpenTerimaPublikasi={() => setShowTerimaPublikasi(true)}
           onSelectPost={(p) => { setShowRoleDashboard(false); handleSelectPost(p); }}
           onLike={handleLike}
           onBookmark={handleBookmark}
           likedIds={likedIds}
           bookmarkedIds={bookmarkedIds}
+          onEditPost={handleOpenEditPost}
+          onDeletePost={() => {
+            fetchPosts();
+            showToast('🗑️ Artikel berhasil dihapus.');
+          }}
         />
       )}
 
