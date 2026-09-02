@@ -441,7 +441,7 @@ export default function TeamSection({
               }}
             >
               <LayoutGrid size={13} />
-              <span className="hide-on-very-small">Kompak 2 Kolom</span>
+              <span className="hide-on-very-small">Grid Rapi</span>
             </button>
 
             <button
@@ -493,12 +493,11 @@ export default function TeamSection({
 
       {/* TEAM MEMBERS DISPLAY BASED ON VIEW MODE */}
 
-      {/* MODE 1: GRID 2 KOLOM (DEFAULT RESPONSIVE - Sangat Pas di Layar HP & Desktop) */}
+      {/* MODE 1: GRID 4 KOLOM DI DESKTOP / 2 KOLOM DI HP */}
       {viewMode === 'grid-2' && (
-        <div className="team-grid-2col" style={{
+        <div className="team-grid-container" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-          gap: 'clamp(10px, 2.5vw, 1.25rem)'
+          gap: 'clamp(10px, 2vw, 1.25rem)'
         }}>
           {filteredMembers.map((member, idx) => {
             const divBadge = getDivisionBadgeColor(member.divisionId);

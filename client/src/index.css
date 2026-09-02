@@ -210,8 +210,25 @@ body {
 }
 
 /* ==========================================================================
+   TEAM GRID LAYOUT: EXACTLY 4 CARDS PER ROW ON DESKTOP, 2 ON MOBILE
+   ========================================================================== */
+
+.team-grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 1.25rem;
+}
+
+/* ==========================================================================
    RESPONSIVE MOBILE & TABLET MEDIA QUERIES
    ========================================================================== */
+
+@media (max-width: 1080px) {
+  .team-grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+}
 
 @media (max-width: 768px) {
   .container {
@@ -232,7 +249,8 @@ body {
     gap: 1.25rem !important;
   }
 
-  /* Team Grid 2-Column on Tablets and Mobiles */
+  /* Team Grid on Tablets & Phones: 2 Columns Per Row */
+  .team-grid-container,
   .team-grid-2col {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
@@ -261,6 +279,7 @@ body {
     display: none !important;
   }
   
+  .team-grid-container,
   .team-grid-2col {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
