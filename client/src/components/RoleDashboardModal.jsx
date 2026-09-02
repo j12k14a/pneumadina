@@ -1152,70 +1152,137 @@ export default function RoleDashboardModal({
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                   {myAuthoredPosts.map(post => (
-                    <div key={post.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                      <PostCard
-                        post={post}
-                        onSelectPost={onSelectPost}
-                        onLike={onLike}
-                        onBookmark={onBookmark}
-                        isLiked={likedIds.includes(post.id)}
-                        isBookmarked={bookmarkedIds.includes(post.id)}
-                        currentUser={currentUser}
-                        onEdit={(p) => {
-                          onClose();
-                          if (onEditPost) onEditPost(p);
-                        }}
-                        onDelete={(id, title) => handleDeletePost(id, title)}
-                      />
-                      {/* Author Management Action Bar */}
+                    <div key={post.id} style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '3px solid #111827',
+                      borderRadius: '18px',
+                      boxShadow: '4px 4px 0px 0px #111827',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}>
+                      {/* Top Author Status Banner */}
                       <div style={{
-                        marginTop: '-10px',
-                        marginBottom: '8px',
+                        backgroundColor: '#FFD600',
+                        borderBottom: '2.5px solid #111827',
+                        padding: '8px 12px',
                         display: 'flex',
-                        gap: '8px',
-                        backgroundColor: '#FFFDF5',
-                        border: '2.5px solid #111827',
-                        borderRadius: '0 0 16px 16px',
-                        padding: '10px 12px',
-                        boxShadow: '3px 3px 0px 0px #111827'
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px'
                       }}>
-                        <button
-                          onClick={() => {
-                            onClose();
-                            if (onEditPost) onEditPost(post);
-                          }}
-                          className="btn btn-yellow"
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            fontSize: '0.8rem',
-                            fontWeight: '900',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px'
-                          }}
-                        >
-                          <Edit2 size={15} /> Edit Artikel
-                        </button>
-                        <button
-                          onClick={() => handleDeletePost(post.id, post.title)}
-                          className="btn btn-outline"
-                          style={{
-                            padding: '8px 14px',
-                            fontSize: '0.8rem',
-                            fontWeight: '800',
-                            color: '#DC2626',
-                            borderColor: '#DC2626',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px'
-                          }}
-                          title="Hapus Artikel"
-                        >
-                          <Trash2 size={15} /> Hapus
-                        </button>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#111827', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          ✍️ Artikel Karya Anda
+                        </span>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              if (onEditPost) onEditPost(post);
+                            }}
+                            className="btn btn-dark"
+                            style={{
+                              padding: '3px 8px',
+                              fontSize: '0.725rem',
+                              fontWeight: '900',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              backgroundColor: '#111827',
+                              color: '#FFD600'
+                            }}
+                            title="Edit Artikel di Studio"
+                          >
+                            <Edit2 size={12} /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id, post.title)}
+                            className="btn btn-outline"
+                            style={{
+                              padding: '3px 6px',
+                              fontSize: '0.725rem',
+                              color: '#DC2626',
+                              borderColor: '#DC2626',
+                              backgroundColor: '#FFFFFF',
+                              display: 'inline-flex',
+                              alignItems: 'center'
+                            }}
+                            title="Hapus Artikel"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div style={{ padding: '14px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                        {post.thumbnail && (
+                          <div style={{
+                            width: '100%',
+                            height: '160px',
+                            borderRadius: '12px',
+                            overflow: 'hidden',
+                            border: '2px solid #111827',
+                            marginBottom: '10px',
+                            backgroundColor: '#111827'
+                          }}>
+                            <img src={post.thumbnail} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                        
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                          {post.categories?.map(c => (
+                            <span key={c.id} className="badge badge-yellow" style={{ fontSize: '0.65rem' }}>{c.name}</span>
+                          ))}
+                          <span style={{ fontSize: '0.7rem', color: '#6B7280', fontWeight: '700', alignSelf: 'center' }}>
+                            • {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#111827', marginBottom: '6px', lineHeight: '1.3' }}>
+                          {post.title}
+                        </h4>
+                        
+                        <p style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: '1.4', marginBottom: '14px', flexGrow: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {post.excerpt || post.content}
+                        </p>
+
+                        {/* Bottom Actions */}
+                        <div style={{ display: 'flex', gap: '6px', paddingTop: '10px', borderTop: '2px solid #E5E7EB' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              if (onEditPost) onEditPost(post);
+                            }}
+                            className="btn btn-yellow"
+                            style={{ flex: 1, padding: '8px 10px', fontSize: '0.8rem', fontWeight: '900', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                          >
+                            <Edit2 size={14} /> Edit Naskah
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              onSelectPost(post);
+                            }}
+                            className="btn btn-outline"
+                            style={{ padding: '8px 12px', fontSize: '0.8rem', fontWeight: '800' }}
+                          >
+                            👁️ Baca
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id, post.title)}
+                            className="btn btn-outline"
+                            style={{ padding: '8px 10px', fontSize: '0.8rem', color: '#DC2626', borderColor: '#DC2626' }}
+                            title="Hapus Artikel"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
