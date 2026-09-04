@@ -1,0 +1,5 @@
+﻿User-agent: *
+Allow: /
+
+Sitemap: https://pneumadina.web.app/sitemap.xml
+Sitemap: https://pneumadina-611a2.web.app/sitemap.xml
