@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, LogIn, UserPlus, Lock, Mail, User, CheckCircle, Copy, Check } from 'lucide-react';
+import { X, LogIn, UserPlus, Lock, Mail, User, CheckCircle } from 'lucide-react';
 import { db, doc, setDoc, getDocs, collection } from '../firebase';
-import { getBaseUrl } from '../utils/urlHelper';
 
 export default function AuthModal({ 
   onClose, 
@@ -10,7 +9,6 @@ export default function AuthModal({
   onModeChange
 }) {
   const [isRegister, setIsRegister] = useState(initialMode === 'regis');
-  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     setIsRegister(initialMode === 'regis');
@@ -316,41 +314,6 @@ export default function AuthModal({
             }}
           >
             <X size={16} />
-          </button>
-        </div>
-
-        {/* Canonical Direct Link Pill */}
-        <div style={{
-          backgroundColor: '#FFFDF5',
-          borderBottom: '2px solid #111827',
-          padding: '6px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          fontSize: '0.725rem',
-          color: '#4B5563'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}>
-            <span style={{ fontWeight: '800', color: '#111827', flexShrink: 0 }}>🔗 Tautan Langsung:</span>
-            <span style={{ fontFamily: 'monospace', color: '#2563EB', fontWeight: '700', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              {getBaseUrl()}/{isRegister ? 'regis' : 'login'}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              const url = `${getBaseUrl()}/${isRegister ? 'regis' : 'login'}`;
-              navigator.clipboard?.writeText(url);
-              setCopiedLink(true);
-              setTimeout(() => setCopiedLink(false), 2000);
-            }}
-            className={`btn ${copiedLink ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '2px 8px', fontSize: '0.675rem', flexShrink: 0 }}
-            title="Salin Tautan"
-          >
-            {copiedLink ? <Check size={11} /> : <Copy size={11} />}
-            {copiedLink ? 'Tersalin!' : 'Salin'}
           </button>
         </div>
 
