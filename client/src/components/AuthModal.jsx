@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
-import { X, LogIn, UserPlus, Lock, Mail, User, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, LogIn, UserPlus, Lock, Mail, User, CheckCircle, Copy, Check } from 'lucide-react';
 import { db, doc, setDoc, getDocs, collection } from '../firebase';
+import { getBaseUrl } from '../utils/urlHelper';
 
-export default function AuthModal({ onClose, onLoginSuccess }) {
-  const [isRegister, setIsRegister] = useState(false);
+export default function AuthModal({ 
+  onClose, 
+  onLoginSuccess,
+  initialMode = 'login',
+  onModeChange
+}) {
+  const [isRegister, setIsRegister] = useState(initialMode === 'regis');
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  useEffect(() => {
+    setIsRegister(initialMode === 'regis');
+  }, [initialMode]);
+
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -307,6 +319,41 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
           </button>
         </div>
 
+        {/* Canonical Direct Link Pill */}
+        <div style={{
+          backgroundColor: '#FFFDF5',
+          borderBottom: '2px solid #111827',
+          padding: '6px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          fontSize: '0.725rem',
+          color: '#4B5563'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}>
+            <span style={{ fontWeight: '800', color: '#111827', flexShrink: 0 }}>🔗 Tautan Langsung:</span>
+            <span style={{ fontFamily: 'monospace', color: '#2563EB', fontWeight: '700', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              {getBaseUrl()}/{isRegister ? 'regis' : 'login'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `${getBaseUrl()}/${isRegister ? 'regis' : 'login'}`;
+              navigator.clipboard?.writeText(url);
+              setCopiedLink(true);
+              setTimeout(() => setCopiedLink(false), 2000);
+            }}
+            className={`btn ${copiedLink ? 'btn-yellow' : 'btn-outline'}`}
+            style={{ padding: '2px 8px', fontSize: '0.675rem', flexShrink: 0 }}
+            title="Salin Tautan"
+          >
+            {copiedLink ? <Check size={11} /> : <Copy size={11} />}
+            {copiedLink ? 'Tersalin!' : 'Salin'}
+          </button>
+        </div>
+
         {errorMsg && (
           <div style={{ backgroundColor: '#FEE2E2', color: '#DC2626', padding: '10px 16px', fontWeight: '700', borderBottom: '1px solid #EF4444', fontSize: '0.825rem' }}>
             {errorMsg}
@@ -375,7 +422,11 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
               Belum punya akun?{' '}
               <button 
                 type="button" 
-                onClick={() => { setIsRegister(true); setErrorMsg(''); }}
+                onClick={() => { 
+                  setIsRegister(true); 
+                  setErrorMsg(''); 
+                  if (onModeChange) onModeChange('regis');
+                }}
                 style={{ background: 'none', border: 'none', color: '#2563EB', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 Daftar Akun Baru
@@ -455,7 +506,11 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
               Sudah punya akun?{' '}
               <button 
                 type="button" 
-                onClick={() => { setIsRegister(false); setErrorMsg(''); }}
+                onClick={() => { 
+                  setIsRegister(false); 
+                  setErrorMsg(''); 
+                  if (onModeChange) onModeChange('login');
+                }}
                 style={{ background: 'none', border: 'none', color: '#2563EB', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 Masuk Di Sini

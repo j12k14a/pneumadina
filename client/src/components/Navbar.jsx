@@ -163,15 +163,24 @@ export default function Navbar({
             </button>
           )}
 
-          {/* Unauthenticated User: Show Login Button */}
+          {/* Unauthenticated User: Show Login & Daftar Buttons */}
           {!currentUser ? (
-            <button 
-              className="btn btn-dark"
-              onClick={onOpenAuth}
-              style={{ padding: '0.45rem 1.1rem', fontSize: '0.825rem' }}
-            >
-              <LogIn size={15} /> Masuk / Daftar
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                className="btn btn-outline"
+                onClick={() => onOpenAuth('login')}
+                style={{ padding: '0.45rem 1rem', fontSize: '0.825rem', backgroundColor: '#FFFFFF' }}
+              >
+                <LogIn size={15} /> Masuk
+              </button>
+              <button 
+                className="btn btn-yellow"
+                onClick={() => onOpenAuth('regis')}
+                style={{ padding: '0.45rem 1rem', fontSize: '0.825rem', fontWeight: '900' }}
+              >
+                Daftar
+              </button>
+            </div>
           ) : (
             /* Authenticated User Profile Dropdown */
             <div style={{ position: 'relative' }}>
@@ -563,13 +572,22 @@ export default function Navbar({
           )}
 
           {!currentUser && (
-            <button 
-              className="btn btn-dark"
-              onClick={() => { onOpenAuth(); setShowMobileMenu(false); }}
-              style={{ width: '100%', padding: '12px', justifyContent: 'center', marginTop: '6px' }}
-            >
-              <LogIn size={18} /> Masuk / Daftar Akun
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+              <button 
+                className="btn btn-outline"
+                onClick={() => { onOpenAuth('login'); setShowMobileMenu(false); }}
+                style={{ flex: 1, padding: '10px', justifyContent: 'center', backgroundColor: '#FFFFFF' }}
+              >
+                <LogIn size={16} /> Masuk
+              </button>
+              <button 
+                className="btn btn-yellow"
+                onClick={() => { onOpenAuth('regis'); setShowMobileMenu(false); }}
+                style={{ flex: 1, padding: '10px', justifyContent: 'center', fontWeight: '900' }}
+              >
+                Daftar Akun
+              </button>
+            </div>
           )}
 
         </div>

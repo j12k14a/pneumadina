@@ -101,6 +101,7 @@ export default function App() {
   const [showBookClub, setShowBookClub] = useState(false);
   const [showStudio, setShowStudio] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'regis'
   const [showRoleDashboard, setShowRoleDashboard] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
@@ -205,6 +206,41 @@ export default function App() {
     }
   };
 
+  const handleOpenAuth = (mode = 'login', pushToHistory = true) => {
+    const targetMode = (mode === 'regis' || mode === 'register' || mode === 'daftar') ? 'regis' : 'login';
+    setAuthModalMode(targetMode);
+    setShowAuthModal(true);
+    document.title = targetMode === 'regis' ? 'Daftar Akun Baru — Pneumadina' : 'Masuk Akun — Pneumadina';
+
+    if (pushToHistory) {
+      const authUrl = targetMode === 'regis' ? '/regis' : '/login';
+      try {
+        window.history.pushState({ type: 'auth', mode: targetMode }, '', authUrl);
+      } catch (e) {}
+    }
+  };
+
+  const handleCloseAuth = (pushToHistory = true) => {
+    setShowAuthModal(false);
+    document.title = DEFAULT_TITLE;
+
+    if (pushToHistory) {
+      try {
+        window.history.pushState({ type: 'home' }, '', '/');
+      } catch (e) {}
+    }
+  };
+
+  const handleAuthModeChange = (mode) => {
+    const targetMode = (mode === 'regis' || mode === 'register' || mode === 'daftar') ? 'regis' : 'login';
+    setAuthModalMode(targetMode);
+    document.title = targetMode === 'regis' ? 'Daftar Akun Baru — Pneumadina' : 'Masuk Akun — Pneumadina';
+    const authUrl = targetMode === 'regis' ? '/regis' : '/login';
+    try {
+      window.history.pushState({ type: 'auth', mode: targetMode }, '', authUrl);
+    } catch (e) {}
+  };
+
   // Process incoming Route
   const applyRoute = (route, currentPosts = posts, currentTeam = teamMembers) => {
     if (!route) return;
@@ -256,10 +292,16 @@ export default function App() {
       if (route.modal === 'bookClub') setShowBookClub(true);
       if (route.modal === 'donasi') setShowDonationModal(true);
       if (route.modal === 'studio') setShowStudio(true);
+    } else if (route.type === 'auth') {
+      const mode = (route.mode === 'regis' || route.mode === 'register' || route.mode === 'daftar') ? 'regis' : 'login';
+      setAuthModalMode(mode);
+      setShowAuthModal(true);
+      document.title = mode === 'regis' ? 'Daftar Akun Baru — Pneumadina' : 'Masuk Akun — Pneumadina';
     } else if (route.type === 'home') {
       setSelectedPost(null);
       setFullPagePost(null);
       setSelectedTeamMember(null);
+      setShowAuthModal(false);
       document.title = DEFAULT_TITLE;
     }
   };
@@ -755,7 +797,7 @@ export default function App() {
         setActiveTab={setActiveTab}
         currentUser={currentUser}
         onLogout={handleLogout}
-        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenAuth={(mode) => handleOpenAuth(mode || 'login')}
         onOpenStudio={() => setShowStudio(true)}
         onOpenTerimaPublikasi={() => setShowTerimaPublikasi(true)}
         onOpenBookClub={() => setShowBookClub(true)}
@@ -1233,8 +1275,13 @@ export default function App() {
       {/* MODALS */}
       {showAuthModal && (
         <AuthModal
-          onClose={() => setShowAuthModal(false)}
-          onLoginSuccess={handleLoginSuccess}
+          initialMode={authModalMode}
+          onModeChange={handleAuthModeChange}
+          onClose={() => handleCloseAuth()}
+          onLoginSuccess={(user) => {
+            handleLoginSuccess(user);
+            handleCloseAuth();
+          }}
         />
       )}
 

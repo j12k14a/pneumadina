@@ -106,6 +106,14 @@ export function parseCurrentRoute() {
     return { type: 'modal', modal: 'studio' };
   }
 
+  // 4. Auth Direct Routes: /login, /regis, /register, /masuk, /daftar
+  if (pathname === '/login' || pathname === '/masuk' || pathname === '/signin' || searchParams.has('login')) {
+    return { type: 'auth', mode: 'login' };
+  }
+  if (pathname === '/regis' || pathname === '/register' || pathname === '/daftar' || pathname === '/signup' || searchParams.has('regis') || searchParams.has('register')) {
+    return { type: 'auth', mode: 'regis' };
+  }
+
   return { type: 'home' };
 }
 
