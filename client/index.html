@@ -1,12 +1,97 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pneumadina — Komunitas & Publikasi Editorial</title>
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>Pneumadina — Komunitas & Publikasi Mahasiswa Universitas Paramadina</title>
+    <meta name="title" content="Pneumadina — Komunitas & Publikasi Mahasiswa Universitas Paramadina" />
+    <meta name="description" content="Pneumadina adalah platform resmi komunitas, blog pemikiran, ruang kreasi, dan publikasi riset ilmiah mahasiswa Universitas Paramadina lintas program studi dan SARA." />
+    <meta name="keywords" content="Pneumadina, universitas paramadina, mahasiswa paramadina, komunitas pneumadina, litbang paramadina, publikasi ilmiah paramadina, artikel paramadina, jurnal paramadina, paramadina literasi, cipayung paramadina" />
+    <meta name="author" content="Komunitas Pneumadina" />
+    <meta name="theme-color" content="#FFD600" />
+    <link rel="canonical" href="https://pneumadina.web.app/" />
+
+    <!-- Search Engine Robots Indexing Rules -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
+    <!-- Open Graph / Facebook / WhatsApp SEO Preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pneumadina.web.app/" />
+    <meta property="og:title" content="Pneumadina — Komunitas & Publikasi Mahasiswa Universitas Paramadina" />
+    <meta property="og:description" content="Platform resmi komunitas dan media publikasi ilmiah mahasiswa Universitas Paramadina lintas program studi dan disiplin ilmu." />
+    <meta property="og:image" content="https://pneumadina.web.app/logo.png" />
+    <meta property="og:site_name" content="Pneumadina" />
+    <meta property="og:locale" content="id_ID" />
+
+    <!-- Twitter Cards Preview -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://pneumadina.web.app/" />
+    <meta name="twitter:title" content="Pneumadina — Komunitas & Publikasi Mahasiswa Universitas Paramadina" />
+    <meta name="twitter:description" content="Platform resmi komunitas dan media publikasi ilmiah mahasiswa Universitas Paramadina lintas program studi dan disiplin ilmu." />
+    <meta name="twitter:image" content="https://pneumadina.web.app/logo.png" />
+
+    <!-- JSON-LD Structured Data for Google Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://pneumadina.web.app/#organization",
+          "name": "Pneumadina",
+          "alternateName": "Komunitas Pneumadina Universitas Paramadina",
+          "url": "https://pneumadina.web.app",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://pneumadina.web.app/logo.png",
+            "caption": "Logo Pneumadina"
+          },
+          "description": "Komunitas dan media publikasi mahasiswa Universitas Paramadina lintas program studi dan disiplin ilmu.",
+          "sameAs": [
+            "https://github.com/j12k14a/pneumadina"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://pneumadina.web.app/#website",
+          "url": "https://pneumadina.web.app",
+          "name": "Pneumadina",
+          "alternateName": "Pneumadina Paramadina",
+          "description": "Komunitas & Publikasi Mahasiswa Universitas Paramadina",
+          "publisher": {
+            "@id": "https://pneumadina.web.app/#organization"
+          },
+          "inLanguage": "id-ID"
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
+    <noscript>
+      <div style="padding: 24px; font-family: sans-serif; max-width: 800px; margin: auto; line-height: 1.6;">
+        <h1>Pneumadina — Komunitas & Publikasi Mahasiswa Universitas Paramadina</h1>
+        <p>
+          Selamat datang di Pneumadina, platform komunitas dan media publikasi independen mahasiswa Universitas Paramadina.
+          Kami menampung karya esai ilmiah, wacana non-fiksi, cerpen fiksi, riset litbang, serta apresiasi literasi lintas program studi.
+        </p>
+        <h2>Akses Menu & Halaman:</h2>
+        <ul>
+          <li><a href="https://pneumadina.web.app/">Beranda Artikel & Publikasi</a></li>
+          <li><a href="https://pneumadina.web.app/visi-misi">Visi & Misi Pneumadina</a></li>
+          <li><a href="https://pneumadina.web.app/tim">Struktur Kabinet & Divisi Litbang</a></li>
+          <li><a href="https://pneumadina.web.app/login">Masuk Akun Penggerak</a></li>
+          <li><a href="https://pneumadina.web.app/regis">Daftar Akun Baru</a></li>
+        </ul>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
