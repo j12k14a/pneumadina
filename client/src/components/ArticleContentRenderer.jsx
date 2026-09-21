@@ -104,13 +104,14 @@ export default function ArticleContentRenderer({
           trimmed.startsWith('## References') || 
           trimmed.startsWith('## 6. References') || 
           trimmed.startsWith('## DAFTAR PUSTAKA') ||
+          trimmed.startsWith('## Daftar Pustaka') ||
           trimmed.toLowerCase() === '## references'
         ) {
           inReferences = true;
           return (
-            <div key={idx} style={{ marginTop: '3rem', marginBottom: '1.5rem', borderTop: `2.5px solid ${colors.abstractBorder}`, paddingTop: '1.75rem' }}>
+            <div key={idx} className="article-references-header" style={{ marginTop: '3rem', marginBottom: '1.5rem', borderTop: `2.5px solid ${colors.abstractBorder}`, paddingTop: '1.75rem' }}>
               <h2 className="font-serif" style={{
-                fontSize: 'clamp(1.3rem, 4vw, 1.8rem)',
+                fontSize: 'clamp(1.2rem, 4vw, 1.8rem)',
                 fontWeight: '900',
                 color: colors.heading,
                 marginBottom: '0.75rem',
@@ -118,9 +119,9 @@ export default function ArticleContentRenderer({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Link2 size={22} color="#2563EB" /> References & Bibliography
+                <Link2 size={22} color="#2563EB" style={{ flexShrink: 0 }} /> Referensi & Daftar Pustaka
               </h2>
-              <p style={{ fontSize: '0.85rem', color: isDark ? '#94A3B8' : '#6B7280', marginBottom: '1.25rem' }}>
+              <p style={{ fontSize: '0.825rem', color: isDark ? '#94A3B8' : '#6B7280', marginBottom: '1.25rem' }}>
                 Sumber rujukan primer, traktat hukum internasional, dan jurnal akademik bereputasi:
               </p>
             </div>
@@ -130,14 +131,16 @@ export default function ArticleContentRenderer({
         // H1 Heading
         if (trimmed.startsWith('# ')) {
           return (
-            <h1 key={idx} className="font-serif" style={{
-              fontSize: 'clamp(1.4rem, 4vw, 2rem)',
+            <h1 key={idx} className="font-serif article-heading-1" style={{
+              fontSize: 'clamp(1.35rem, 4vw, 2rem)',
               fontWeight: '900',
               color: colors.heading,
               lineHeight: '1.25',
               marginTop: '1.75rem',
               marginBottom: '1rem',
-              letterSpacing: '-0.3px'
+              letterSpacing: '-0.3px',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}>
               {trimmed.replace(/^#\s+/, '')}
             </h1>
@@ -148,15 +151,17 @@ export default function ArticleContentRenderer({
         if (trimmed.startsWith('## ')) {
           inReferences = false;
           return (
-            <h2 key={idx} className="font-serif" style={{
-              fontSize: 'clamp(1.2rem, 3.5vw, 1.6rem)',
+            <h2 key={idx} className="font-serif article-heading-2" style={{
+              fontSize: 'clamp(1.15rem, 3.5vw, 1.6rem)',
               fontWeight: '900',
               color: colors.heading,
               lineHeight: '1.3',
               marginTop: '2.5rem',
               marginBottom: '1rem',
               borderLeft: `5px solid ${colors.h2Accent}`,
-              paddingLeft: '14px'
+              paddingLeft: '12px',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}>
               {trimmed.replace(/^##\s+/, '')}
             </h2>
@@ -166,13 +171,15 @@ export default function ArticleContentRenderer({
         // H3 Subheading
         if (trimmed.startsWith('### ')) {
           return (
-            <h3 key={idx} style={{
-              fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)',
+            <h3 key={idx} className="article-heading-3" style={{
+              fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
               fontWeight: '800',
               color: '#2563EB',
               lineHeight: '1.35',
               marginTop: '1.75rem',
-              marginBottom: '0.75rem'
+              marginBottom: '0.75rem',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}>
               {trimmed.replace(/^###\s+/, '')}
             </h3>
@@ -183,32 +190,35 @@ export default function ArticleContentRenderer({
         if (trimmed.startsWith('> ') || trimmed.toLowerCase().startsWith('abstract')) {
           const cleanQuote = trimmed.replace(/^>\s*/, '');
           return (
-            <div key={idx} style={{
+            <div key={idx} className="article-blockquote" style={{
               backgroundColor: colors.abstractBg,
               border: `2px solid ${colors.abstractBorder}`,
               borderRadius: '16px',
-              padding: '1.25rem 1.5rem',
-              margin: '1.75rem 0',
-              boxShadow: isDark ? 'none' : `4px 4px 0px 0px ${colors.abstractBorder}`
+              padding: 'clamp(1rem, 3vw, 1.5rem)',
+              margin: '1.5rem 0',
+              boxShadow: isDark ? 'none' : `4px 4px 0px 0px ${colors.abstractBorder}`,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontWeight: '900',
-                fontSize: '0.85rem',
+                fontSize: '0.825rem',
                 color: colors.heading,
                 marginBottom: '10px'
               }}>
-                <BookOpen size={18} color="#2563EB" />
+                <BookOpen size={18} color="#2563EB" style={{ flexShrink: 0 }} />
                 <span>ABSTRAK & IKHTISAR AKADEMIK</span>
               </div>
-              <div style={{
+              <div className="article-quote-text" style={{
                 fontSize: `${fontSize}px`,
-                lineHeight: '1.85',
+                lineHeight: '1.8',
                 color: colors.text,
                 fontStyle: 'italic',
-                textAlign: 'justify'
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
               }}>
                 {renderInlineFormatted(cleanQuote, colors)}
               </div>
@@ -231,7 +241,7 @@ export default function ArticleContentRenderer({
         if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
           const lines = trimmed.split('\n');
           return (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '1.25rem 0' }}>
+            <div key={idx} className="article-bullet-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '1.25rem 0' }}>
               {lines.map((line, lIdx) => {
                 const lTrim = line.trim().replace(/^[•\-*]\s*/, '');
                 if (!lTrim) return null;
@@ -242,11 +252,12 @@ export default function ArticleContentRenderer({
                       fontWeight: '900',
                       fontSize: '1.2rem',
                       lineHeight: '1',
-                      marginTop: '4px'
+                      marginTop: '4px',
+                      flexShrink: 0
                     }}>
                       •
                     </span>
-                    <div style={{ flexGrow: 1, textAlign: 'justify', lineHeight: '1.85' }}>
+                    <div className="article-bullet-content" style={{ flexGrow: 1, lineHeight: '1.8', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                       {renderInlineFormatted(lTrim, colors)}
                     </div>
                   </div>
@@ -260,7 +271,7 @@ export default function ArticleContentRenderer({
         if (inReferences || /^\d+\.\s+/.test(trimmed)) {
           const lines = trimmed.split('\n');
           return (
-            <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
+            <div key={idx} className="article-references-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
               {lines.map((line, lIdx) => {
                 const lTrim = line.trim();
                 if (!lTrim) return null;
@@ -269,16 +280,18 @@ export default function ArticleContentRenderer({
                 const refContent = matchNum ? matchNum[2] : lTrim;
 
                 return (
-                  <div key={lIdx} style={{
+                  <div key={lIdx} className="article-ref-item" style={{
                     backgroundColor: colors.refBg,
                     border: `1.5px solid ${colors.refBorder}`,
                     borderRadius: '10px',
-                    padding: '10px 14px',
+                    padding: '10px 12px',
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: '10px',
                     fontSize: `${Math.max(13, fontSize - 2)}px`,
-                    lineHeight: '1.65'
+                    lineHeight: '1.65',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word'
                   }}>
                     <span style={{
                       backgroundColor: '#FFD600',
@@ -297,7 +310,7 @@ export default function ArticleContentRenderer({
                     }}>
                       {num}
                     </span>
-                    <div style={{ flexGrow: 1, wordBreak: 'break-word' }}>
+                    <div style={{ flexGrow: 1, wordBreak: 'break-word', overflowWrap: 'break-word', minWidth: 0 }}>
                       {renderInlineFormatted(refContent, colors)}
                     </div>
                   </div>
@@ -309,10 +322,11 @@ export default function ArticleContentRenderer({
 
         // Regular Paragraph
         return (
-          <p key={idx} style={{
+          <p key={idx} className="article-paragraph" style={{
             marginBottom: '1.35rem',
-            textAlign: 'justify',
-            lineHeight: '1.85'
+            lineHeight: '1.8',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
           }}>
             {renderInlineFormatted(trimmed, colors)}
           </p>
@@ -323,7 +337,7 @@ export default function ArticleContentRenderer({
 }
 
 /**
- * Render Markdown Table into styled HTML Table
+ * Render Markdown Table into styled HTML Table with responsive container
  */
 function renderTableBlock(blockText, key, colors, fontSize, isDark) {
   const lines = blockText.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l.startsWith('|'));
@@ -339,56 +353,80 @@ function renderTableBlock(blockText, key, colors, fontSize, isDark) {
   });
 
   return (
-    <div key={key} style={{
-      margin: '2rem 0',
-      overflowX: 'auto',
-      borderRadius: '14px',
-      border: `2px solid ${colors.tableBorder}`,
-      boxShadow: isDark ? 'none' : `4px 4px 0px 0px ${colors.tableBorder}`
-    }}>
-      <table style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        fontSize: `${Math.max(12, fontSize - 2)}px`,
-        textAlign: 'left'
+    <div key={key} className="article-table-container" style={{ margin: '1.75rem 0' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '0.75rem',
+        fontWeight: '700',
+        color: isDark ? '#94A3B8' : '#6B7280',
+        marginBottom: '6px',
+        padding: '0 4px'
       }}>
-        <thead>
-          <tr style={{ backgroundColor: colors.tableHeaderBg, color: colors.tableHeaderText }}>
-            {headers.map((h, hIdx) => (
-              <th key={hIdx} style={{
-                padding: '12px 16px',
-                fontWeight: '900',
-                borderBottom: `2px solid ${colors.tableBorder}`,
-                letterSpacing: '0.3px',
-                fontSize: '0.85rem'
-              }}>
-                {renderInlineFormatted(h, colors)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, rIdx) => (
-            <tr 
-              key={rIdx} 
-              style={{ 
-                backgroundColor: rIdx % 2 === 0 ? 'transparent' : colors.tableStripe,
-                borderBottom: rIdx === rows.length - 1 ? 'none' : `1px solid ${colors.refBorder}`
-              }}
-            >
-              {row.map((cell, cIdx) => (
-                <td key={cIdx} style={{
-                  padding: '12px 16px',
-                  verticalAlign: 'top',
-                  lineHeight: '1.65'
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Table size={14} color="#2563EB" /> Tabel Perbandingan Data
+        </span>
+        <span className="table-mobile-hint" style={{ fontSize: '0.7rem' }}>
+          ↔️ Geser ke samping
+        </span>
+      </div>
+
+      <div style={{
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        borderRadius: '12px',
+        border: `2px solid ${colors.tableBorder}`,
+        boxShadow: isDark ? 'none' : `3px 3px 0px 0px ${colors.tableBorder}`
+      }}>
+        <table style={{
+          width: '100%',
+          minWidth: '480px',
+          borderCollapse: 'collapse',
+          fontSize: `${Math.max(12, fontSize - 2)}px`,
+          textAlign: 'left'
+        }}>
+          <thead>
+            <tr style={{ backgroundColor: colors.tableHeaderBg, color: colors.tableHeaderText }}>
+              {headers.map((h, hIdx) => (
+                <th key={hIdx} style={{
+                  padding: '10px 14px',
+                  fontWeight: '900',
+                  borderBottom: `2px solid ${colors.tableBorder}`,
+                  letterSpacing: '0.3px',
+                  fontSize: '0.8rem',
+                  whiteSpace: 'nowrap'
                 }}>
-                  {renderInlineFormatted(cell, colors)}
-                </td>
+                  {renderInlineFormatted(h, colors)}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, rIdx) => (
+              <tr 
+                key={rIdx} 
+                style={{ 
+                  backgroundColor: rIdx % 2 === 0 ? 'transparent' : colors.tableStripe,
+                  borderBottom: rIdx === rows.length - 1 ? 'none' : `1px solid ${colors.refBorder}`
+                }}
+              >
+                {row.map((cell, cIdx) => (
+                  <td key={cIdx} style={{
+                    padding: '10px 14px',
+                    verticalAlign: 'top',
+                    lineHeight: '1.6',
+                    minWidth: cIdx === 0 ? '120px' : '150px',
+                    wordBreak: 'break-word'
+                  }}>
+                    {renderInlineFormatted(cell, colors)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -272,6 +272,70 @@ body {
   h2 {
     font-size: clamp(1.3rem, 5.5vw, 1.7rem) !important;
   }
+
+  /* Article Page Tablet Adjustments */
+  .article-page-main {
+    padding: 1.25rem 12px 3.5rem 12px !important;
+  }
+  
+  .article-meta-box,
+  .article-content-card,
+  .article-share-card,
+  .article-comments-card {
+    padding: 1.25rem 14px !important;
+    border-radius: 14px !important;
+    box-shadow: 4px 4px 0px 0px var(--color-dark) !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .article-thumbnail-box {
+    border-radius: 14px !important;
+    box-shadow: 4px 4px 0px 0px var(--color-dark) !important;
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Article Page Mobile Polish */
+  .article-page-main {
+    padding: 0.75rem 8px 3rem 8px !important;
+  }
+
+  .article-meta-box,
+  .article-content-card,
+  .article-share-card,
+  .article-comments-card {
+    padding: 1rem 12px !important;
+    border-radius: 12px !important;
+    box-shadow: 3px 3px 0px 0px var(--color-dark) !important;
+    margin-bottom: 1.25rem !important;
+    border-width: 2px !important;
+  }
+
+  .article-thumbnail-box {
+    border-radius: 12px !important;
+    box-shadow: 3px 3px 0px 0px var(--color-dark) !important;
+    margin-bottom: 1.25rem !important;
+    border-width: 2px !important;
+  }
+
+  /* Fix spacing gaps from text-justify on mobile screens */
+  .article-paragraph,
+  .article-quote-text,
+  .article-bullet-content {
+    text-align: left !important;
+    line-height: 1.75 !important;
+  }
+
+  .article-ref-item {
+    padding: 8px 10px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .article-blockquote {
+    padding: 0.875rem 1rem !important;
+    border-radius: 12px !important;
+  }
 }
 
 @media (max-width: 520px) {
@@ -305,3 +369,4 @@ body {
     padding: 3px 8px;
   }
 }
+

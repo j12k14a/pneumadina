@@ -465,10 +465,10 @@ export default function ArticlePageView({
       )}
 
       {/* Main Article Content Container */}
-      <main className="container" style={{ maxWidth: '880px', padding: '2.5rem 16px 4rem 16px' }}>
+      <main className="container article-page-main" style={{ maxWidth: '880px' }}>
         
         {/* Article Meta Header Box */}
-        <div style={{
+        <div className="article-meta-box" style={{
           backgroundColor: currentTheme.surface,
           border: `3px solid ${currentTheme.border}`,
           borderRadius: '20px',
@@ -524,7 +524,8 @@ export default function ArticlePageView({
                 fontWeight: '900',
                 fontSize: '1.1rem',
                 color: '#111827',
-                boxShadow: `2px 2px 0px 0px ${currentTheme.border}`
+                boxShadow: `2px 2px 0px 0px ${currentTheme.border}`,
+                flexShrink: 0
               }}>
                 {post.author_name?.charAt(0) || 'J'}
               </div>
@@ -548,7 +549,7 @@ export default function ArticlePageView({
 
         {/* Article Cover Image Banner */}
         {post.thumbnail && (
-          <div style={{
+          <div className="article-thumbnail-box" style={{
             borderRadius: '18px',
             border: `3px solid ${currentTheme.border}`,
             boxShadow: `6px 6px 0px 0px ${currentTheme.border}`,
@@ -566,7 +567,7 @@ export default function ArticlePageView({
         )}
 
         {/* Long-Form Rendered Article Body */}
-        <article style={{
+        <article className="article-content-card" style={{
           backgroundColor: currentTheme.surface,
           border: `3px solid ${currentTheme.border}`,
           borderRadius: '20px',
@@ -607,7 +608,7 @@ export default function ArticlePageView({
         </article>
 
         {/* Engagement & Multi-Channel Sharing Card */}
-        <div style={{
+        <div className="article-share-card" style={{
           backgroundColor: '#FFFDF5',
           border: '3px solid #111827',
           borderRadius: '18px',
@@ -706,7 +707,7 @@ export default function ArticlePageView({
         </div>
 
         {/* Comments Section */}
-        <section style={{
+        <section className="article-comments-card" style={{
           backgroundColor: currentTheme.surface,
           border: `3px solid ${currentTheme.border}`,
           borderRadius: '20px',
