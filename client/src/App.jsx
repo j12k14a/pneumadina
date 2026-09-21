@@ -1024,15 +1024,18 @@ export default function App() {
         ) : (
           <div className="posts-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '1.5rem'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+            gap: '1.25rem',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}>
             {/* Show all if filtered, or show rest if featured exists */}
             {(searchQuery || selectedTag || selectedCategory !== 'all' ? sortedPosts : regularPosts).map((post, idx) => (
               <div 
                 key={post.id} 
-                className="animate-card-pop"
-                style={{ animationDelay: `${idx * 0.04}s` }}
+                className="animate-card-pop post-grid-item"
+                style={{ animationDelay: `${idx * 0.04}s`, minWidth: 0, maxWidth: '100%' }}
               >
                 <PostCard
                   post={post}

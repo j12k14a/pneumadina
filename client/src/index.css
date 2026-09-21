@@ -232,7 +232,9 @@ body {
 
 @media (max-width: 768px) {
   .container {
-    padding: 0 12px;
+    padding: 0 12px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
   }
 
   /* Header Bar Adjustments */
@@ -243,10 +245,42 @@ body {
     font-size: 0.75rem;
   }
 
+  /* Featured Post Card Tablet/Mobile Fix */
+  .featured-post-card {
+    grid-template-columns: 1fr !important;
+    border-radius: 16px !important;
+    box-shadow: 4px 4px 0px 0px var(--color-dark) !important;
+    border-width: 2.5px !important;
+    margin-bottom: 1.5rem !important;
+  }
+
   /* Post Card Feed Grid Mobile Fix */
   .posts-grid {
     grid-template-columns: 1fr !important;
-    gap: 1.25rem !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .posts-grid > div,
+  .post-grid-item,
+  .post-card-item {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .post-card-item {
+    border-radius: 14px !important;
+    box-shadow: 3px 3px 0px 0px var(--color-dark) !important;
+    border-width: 2px !important;
+  }
+
+  .hero-main-card {
+    border-radius: 16px !important;
+    box-shadow: 4px 4px 0px 0px var(--color-dark) !important;
+    border-width: 2.5px !important;
   }
 
   /* Team Grid on Tablets & Phones: 2 Columns Per Row */
@@ -356,12 +390,19 @@ body {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 8px;
+    padding: 0 8px !important;
+  }
+
+  .featured-post-card {
+    border-radius: 14px !important;
+    box-shadow: 3px 3px 0px 0px var(--color-dark) !important;
+    border-width: 2px !important;
+    margin-bottom: 1.25rem !important;
   }
 
   .btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.775rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
   }
 
   .badge {

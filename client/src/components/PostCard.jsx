@@ -46,6 +46,7 @@ export default function PostCard({
   return (
     <article
       onClick={() => onSelectPost(post)}
+      className="post-card-item animate-card-pop"
       style={{
         backgroundColor: '#FFFFFF',
         border: '3px solid #111827',
@@ -57,6 +58,9 @@ export default function PostCard({
         justifyContent: 'space-between',
         cursor: 'pointer',
         height: '100%',
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
         transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), boxShadow 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
       onMouseEnter={(e) => {
@@ -68,7 +72,7 @@ export default function PostCard({
         e.currentTarget.style.boxShadow = '4px 4px 0px 0px #111827';
       }}
     >
-      <div>
+      <div style={{ minWidth: 0, width: '100%' }}>
         
         {/* Cover Photo / Thumbnail */}
         <div style={{
@@ -101,7 +105,8 @@ export default function PostCard({
             display: 'flex',
             gap: '6px',
             flexWrap: 'wrap',
-            zIndex: 2
+            zIndex: 2,
+            maxWidth: 'calc(100% - 20px)'
           }}>
             {post.categories?.map(c => (
               <span key={c.id} className="badge badge-yellow" style={{ boxShadow: '2px 2px 0px 0px #111827', fontSize: '0.675rem' }}>
@@ -158,10 +163,10 @@ export default function PostCard({
         </div>
 
         {/* Card Main Body */}
-        <div style={{ padding: '1.15rem' }}>
+        <div style={{ padding: 'clamp(0.85rem, 3vw, 1.15rem)', minWidth: 0, boxSizing: 'border-box' }}>
           
           {/* Author Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <div style={{
               width: '30px',
               height: '30px',
@@ -174,12 +179,13 @@ export default function PostCard({
               fontWeight: '900',
               fontSize: '0.8rem',
               color: '#111827',
-              boxShadow: '1.5px 1.5px 0px 0px #111827'
+              boxShadow: '1.5px 1.5px 0px 0px #111827',
+              flexShrink: 0
             }}>
               {post.author_name?.charAt(0) || 'D'}
             </div>
-            <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827' }}>
+            <div style={{ minWidth: 0, flexGrow: 1 }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {post.author_name}
               </div>
               <div style={{ fontSize: '0.675rem', color: '#6B7280' }}>
@@ -198,7 +204,9 @@ export default function PostCard({
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
           }}>
             {post.title}
           </h3>
@@ -212,7 +220,9 @@ export default function PostCard({
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
           }}>
             {post.content}
           </p>
@@ -242,20 +252,23 @@ export default function PostCard({
 
       {/* Card Actions Footer Bar */}
       <div style={{
-        padding: '8px 1.15rem',
+        padding: '8px 10px',
         backgroundColor: '#FAF8F5',
         borderTop: '2px solid #111827',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '6px',
+        minWidth: 0
       }}>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
             title="Suka Artikel"
             onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
             className={`btn ${isLiked ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+            style={{ padding: '3px 7px', fontSize: '0.725rem' }}
           >
             <Heart size={13} fill={isLiked ? '#DC2626' : 'none'} color={isLiked ? '#DC2626' : '#111827'} />
             {post.likes_count || 0}
@@ -266,7 +279,7 @@ export default function PostCard({
             title="Simpan Bookmark"
             onClick={(e) => { e.stopPropagation(); onBookmark(post.id); }}
             className={`btn ${isBookmarked ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+            style={{ padding: '3px 7px', fontSize: '0.725rem' }}
           >
             <Bookmark size={13} fill={isBookmarked ? '#111827' : 'none'} />
           </button>
@@ -276,13 +289,13 @@ export default function PostCard({
             title="Bagikan Tautan Artikel"
             onClick={handleQuickShare}
             className={`btn ${copied ? 'btn-yellow' : 'btn-outline'}`}
-            style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+            style={{ padding: '3px 7px', fontSize: '0.725rem' }}
           >
             {copied ? <Check size={13} /> : <Share2 size={13} />}
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
           {isPostAuthorOrAdmin && onEdit && (
             <button
               type="button"
@@ -292,16 +305,16 @@ export default function PostCard({
               }}
               className="btn btn-yellow"
               style={{
-                padding: '3px 8px',
-                fontSize: '0.725rem',
-                fontWeight: '800',
+                padding: '3px 7px',
+                fontSize: '0.7rem',
+                fontWeight: '900',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '3px'
               }}
               title="Edit Artikel"
             >
-              <Edit2 size={12} /> Edit
+              <Edit2 size={11} /> Edit
             </button>
           )}
 
@@ -314,19 +327,19 @@ export default function PostCard({
               }}
               className="btn btn-outline"
               style={{
-                padding: '3px 6px',
-                fontSize: '0.725rem',
+                padding: '3px 5px',
+                fontSize: '0.7rem',
                 color: '#DC2626',
                 borderColor: '#DC2626'
               }}
               title="Hapus Artikel"
             >
-              <Trash2 size={12} />
+              <Trash2 size={11} />
             </button>
           )}
 
-          <div style={{ fontSize: '0.775rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px' }}>
-            Baca <ArrowUpRight size={15} />
+          <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
+            Baca <ArrowUpRight size={14} />
           </div>
         </div>
       </div>

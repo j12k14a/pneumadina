@@ -6,15 +6,18 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
     <section className="container" style={{ margin: '1rem auto 1rem auto' }}>
       
       {/* Main Grid Wrapper - Responsive Breakdown for 320px - 360px Mobile screens */}
-      <div style={{
+      <div className="hero-banner-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: '1.25rem',
-        alignItems: 'stretch'
+        alignItems: 'stretch',
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}>
         
         {/* Left Column: Big Pneumadina Poster Banner */}
-        <div style={{
+        <div className="hero-main-card" style={{
           backgroundColor: '#FFD600',
           backgroundImage: `
             linear-gradient(to right, rgba(255, 255, 255, 0.45) 2px, transparent 2px),
@@ -29,7 +32,9 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
           flexDirection: 'column',
           justifyContent: 'space-between',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          minWidth: 0,
+          boxSizing: 'border-box'
         }}>
           
           <div>
@@ -48,7 +53,8 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
               color: '#111827',
               lineHeight: '1.05',
               letterSpacing: '-0.02em',
-              marginBottom: '1rem'
+              marginBottom: '1rem',
+              wordBreak: 'break-word'
             }}>
               Pneumadina
             </h1>
@@ -75,7 +81,8 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
               backgroundColor: '#FFFFFF',
               border: '2px solid #111827',
               borderRadius: '14px',
-              boxShadow: '3px 3px 0px 0px #111827'
+              boxShadow: '3px 3px 0px 0px #111827',
+              maxWidth: '100%'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.775rem', fontWeight: '800' }}>
                 <span style={{ color: '#2563EB' }}>📚</span> 8 Karya & Artikel
@@ -91,21 +98,21 @@ export default function HeroBanner({ onOpenTerimaPublikasi, onOpenBookClub }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             <button 
               className="btn btn-dark"
               onClick={onOpenTerimaPublikasi}
-              style={{ padding: '0.7rem 1.2rem', fontSize: '0.85rem', flexGrow: 1, minWidth: '140px', justifyContent: 'center' }}
+              style={{ padding: '0.65rem 1rem', fontSize: '0.825rem', flexGrow: 1, minWidth: '120px', justifyContent: 'center' }}
             >
-              <Send size={16} /> Kirim Publikasi Karya
+              <Send size={15} /> Kirim Publikasi
             </button>
 
             <button 
               className="btn btn-blue"
               onClick={onOpenBookClub}
-              style={{ padding: '0.7rem 1.2rem', fontSize: '0.85rem', flexGrow: 1, minWidth: '140px', justifyContent: 'center' }}
+              style={{ padding: '0.65rem 1rem', fontSize: '0.825rem', flexGrow: 1, minWidth: '120px', justifyContent: 'center' }}
             >
-              <BookOpen size={16} /> Ikuti Book Club Mingguan
+              <BookOpen size={15} /> Ikuti Book Club
             </button>
           </div>
 
